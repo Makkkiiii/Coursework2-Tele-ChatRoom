@@ -105,14 +105,14 @@ json (built-in)
 
 ```bash
 cd Main
-python secure_server.py
+python Main_Server.py
 ```
 
 **Start the Client:**
 
 ```bash
 cd Main
-python ClientServer.py
+python Main_Client.py
 ```
 
 ### Method 2: Quick Verification
@@ -301,22 +301,17 @@ The project is organized into logical folders to make navigation easier:
 
 **What it contains:** The main applications you'll actually run
 
-- **`secure_server.py`** - The advanced server with admin GUI, security monitoring, and user management
-- **`ClientServer.py`** - The client application with modern GUI and encryption features
+- **`Main_Server.py`** - The advanced server with admin GUI, security monitoring, and user management
+- **`Main_Client.py`** - The client application with modern GUI and encryption features
+- **`core.py`** - Core classes (Message, User, SecurityManager, FileManager)
+- **`security.py`** - Enterprise-grade security (encryption, rate limiting, audit logging)
+- **`core.py & security.py`** - These are imported by the main applications - no need to run directly
 
 **How to use:**
 
-1. First run `python secure_server.py`
-2. Then run `python ClientServer.py` (can run multiple instances)
+1. First run `python Main_Server.py`
+2. Then run `python Main_Client.py` (can run multiple instances)
 
-#### 📁 `Custom Module/` - Core Engine
-
-**What it contains:** The backbone classes and security systems
-
-- **`chat_core.py`** - Core classes (Message, User, SecurityManager, FileManager)
-- **`advanced_security_fixed.py`** - Enterprise-grade security (encryption, rate limiting, audit logging)
-
-**How to use:** These are imported by the main applications - no need to run directly
 
 #### 📁 `Tests/` - Verification & Testing
 
@@ -326,6 +321,8 @@ The project is organized into logical folders to make navigation easier:
 - **`verify_encryption.py`** - Complete encryption verification suite
 - **`demo_usage.py`** - Usage demonstration examples
 - **`debug_client.py`** - Debug client for testing
+- **`chat_core.py`** - Core classes (Message, User, SecurityManager, FileManager)
+- **`advanced_security_fixed.py`** - Enterprise-grade security (encryption, rate limiting, audit logging)
 
 **How to use:**
 
@@ -342,8 +339,6 @@ python demo_usage.py         # Usage demo
 
 - **`SECURITY_FEATURES.md`** - Complete security documentation
 - **`ENCRYPTION_VERIFICATION.md`** - Step-by-step encryption verification
-- **`GUI_IMPROVEMENTS_SUMMARY.md`** - GUI features and enhancements
-- **`METRICS_FIX_SUMMARY.md`** - Monitoring and metrics details
 
 **How to use:** Open these files to understand specific features in detail
 
@@ -461,7 +456,7 @@ python demo_usage.py         # Usage demo
 
 ## 📜 License
 
-This project is created for educational purposes as part of Programming & Algorithm 2 coursework. Feel free to use and modify for learning purposes.
+This project is created for educational purposes as part of the Programming & Algorithm 2 coursework. Feel free to use and modify for learning purposes.
 
 ---
 
