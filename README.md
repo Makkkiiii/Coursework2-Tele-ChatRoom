@@ -10,7 +10,6 @@ A comprehensive TCP-based chat room application built with Python, featuring mod
 
 ![f425c385-dca5-4a4d-97f7-82d79f432a0e](https://github.com/user-attachments/assets/6bf05b95-cbcf-4192-9f07-74d6a594018b)
 
-
 ## ⚡ Quick Start - Verify Encryption Works
 
 **30-second proof:**
@@ -101,6 +100,7 @@ json (built-in)
    ```
 3. **Verify installation by running tests:**
    ```bash
+   cd Tests
    python test_chat_app.py
    ```
 
