@@ -1,6 +1,0 @@
-2025-06-28 13:02:18 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-28T13:02:18.063187", "severity": "INFO"}
-2025-06-28 13:08:46 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-28T13:08:46.864512", "severity": "INFO"}
-2025-06-28 13:09:30 - INFO - {"event_type": "SERVER_SHUTDOWN", "user": "Admin", "details": "Manual shutdown", "timestamp": "2025-06-28T13:09:30.184992", "severity": "INFO"}
-2025-06-28 13:09:34 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-28T13:09:34.615964", "severity": "INFO"}
-2025-06-28 13:10:01 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "debug_user", "details": "IP: 127.0.0.1, Session: 4s8DuKLg...", "timestamp": "2025-06-28T13:10:01.481130", "severity": "INFO"}
-2025-06-28 13:10:01 - INFO - {"event_type": "FILE_PROCESSED", "user": "debug_user", "details": "File: test_transfer.txt, Size: 207", "timestamp": "2025-06-28T13:10:01.990080", "severity": "INFO"}
