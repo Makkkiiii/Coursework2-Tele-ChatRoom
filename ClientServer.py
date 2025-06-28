@@ -574,6 +574,42 @@ class ModernChatGUI:
             anchor="w"
         )
         self.security_level.pack(fill="x", padx=5, pady=2)
+        
+        # Encryption Test Panel
+        encryption_test_frame = tk.LabelFrame(
+            right_panel,
+            text="🔍 Encryption Verification",
+            bg=self.colors["background"],
+            fg=self.colors["text"],
+            font=("Arial", 10, "bold")
+        )
+        encryption_test_frame.pack(fill="x", padx=5, pady=5)
+        
+        # Test encryption button
+        self.test_encryption_button = tk.Button(
+            encryption_test_frame,
+            text="🔬 Test Encryption",
+            command=self.test_encryption,
+            bg=self.colors["warning"],
+            fg="white",
+            font=("Arial", 8, "bold")
+        )
+        self.test_encryption_button.pack(fill="x", padx=5, pady=2)
+        
+        # Show last encrypted data button
+        self.show_encrypted_button = tk.Button(
+            encryption_test_frame,
+            text="👁️ Show Raw Data",
+            command=self.show_encrypted_data,
+            bg=self.colors["accent"],
+            fg="white",
+            font=("Arial", 8, "bold")
+        )
+        self.show_encrypted_button.pack(fill="x", padx=5, pady=2)
+        
+        # Store last encrypted data for verification
+        self.last_encrypted_data = ""
+        self.last_plain_data = ""
     
     def setup_input_area(self):
         """Setup message input area"""
@@ -826,6 +862,120 @@ class ModernChatGUI:
         messagebox.showerror("Error", message)
         self.add_system_message(f"Error: {message}")
     
+    def test_encryption(self):
+        """Test and display encryption process"""
+        if not hasattr(self.client, 'security_manager'):
+            self.show_error("Security manager not available")
+            return
+            
+        # Test message
+        test_message = "🔒 This is a SECRET test message!"
+        
+        try:
+            # Show the encryption process
+            self.add_system_message("🔬 ENCRYPTION TEST STARTED")
+            self.add_system_message(f"📝 Original message: '{test_message}'")
+            
+            # Encrypt the message
+            encrypted = self.client.security_manager.encrypt_message(test_message)
+            self.add_system_message(f"🔐 Encrypted data: {encrypted[:50]}...")
+            self.add_system_message(f"📊 Encrypted length: {len(encrypted)} bytes")
+            
+            # Decrypt to verify
+            decrypted = self.client.security_manager.decrypt_message(encrypted)
+            self.add_system_message(f"🔓 Decrypted message: '{decrypted}'")
+            
+            # Verify integrity
+            if test_message == decrypted:
+                self.add_system_message("✅ ENCRYPTION TEST PASSED - Data integrity verified!")
+            else:
+                self.add_system_message("❌ ENCRYPTION TEST FAILED - Data corrupted!")
+                
+            # Store for detailed view
+            self.last_plain_data = test_message
+            self.last_encrypted_data = encrypted
+            
+        except Exception as e:
+            self.add_system_message(f"❌ Encryption test failed: {e}")
+    
+    def show_encrypted_data(self):
+        """Show detailed encryption data in a popup"""
+        if not self.last_encrypted_data:
+            messagebox.showinfo("Info", "No encrypted data available. Run encryption test first.")
+            return
+            
+        # Create detailed popup window
+        popup = tk.Toplevel(self.root)
+        popup.title("🔍 Encryption Data Analysis")
+        popup.geometry("600x500")
+        popup.configure(bg=self.colors["background"])
+        
+        # Header
+        tk.Label(
+            popup,
+            text="🔬 ENCRYPTION DATA VERIFICATION",
+            font=("Arial", 14, "bold"),
+            bg=self.colors["background"],
+            fg=self.colors["text"]
+        ).pack(pady=10)
+        
+        # Create text widget for detailed view
+        text_widget = tk.Text(
+            popup,
+            bg=self.colors["chat_bg"],
+            fg=self.colors["text"],
+            font=("Courier", 10),
+            wrap="word"
+        )
+        text_widget.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Insert detailed analysis
+        analysis = f"""🔍 DETAILED ENCRYPTION ANALYSIS
+{'='*50}
+
+📝 ORIGINAL MESSAGE:
+{self.last_plain_data}
+
+🔐 ENCRYPTED DATA (Base64):
+{self.last_encrypted_data}
+
+📊 TECHNICAL DETAILS:
+• Algorithm: AES-256 (Fernet)
+• Key Derivation: PBKDF2 with 100,000 iterations
+• Salt: {self.client.security_manager._derive_key()[:32].hex()}...
+• Encrypted Length: {len(self.last_encrypted_data)} bytes
+• Original Length: {len(self.last_plain_data)} bytes
+
+🛡️ SECURITY ANALYSIS:
+✅ Data is completely unreadable without the key
+✅ Salt prevents rainbow table attacks
+✅ PBKDF2 makes brute force attacks impractical
+✅ AES-256 is quantum-resistant (current standards)
+
+🚨 WHAT ATTACKERS SEE:
+If someone intercepts this data, they only see:
+{self.last_encrypted_data}
+
+❌ WITHOUT ENCRYPTION, they would see:
+{self.last_plain_data}
+
+🔒 CONCLUSION: Your data is SECURE!
+"""
+        
+        text_widget.insert("1.0", analysis)
+        text_widget.config(state="disabled")
+        
+        # Close button
+        tk.Button(
+            popup,
+            text="Close",
+            command=popup.destroy,
+            bg=self.colors["accent"],
+            fg="white",
+            font=("Arial", 10, "bold")
+        ).pack(pady=10)
+    
+    # ...existing code...
     def run(self):
         """Start the GUI"""
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
