@@ -272,16 +272,16 @@ The project is organized into logical folders to make navigation easier:
 📁 ProgrammingAlgo2/
 ├── 📁 Main/                        # Core Application Files
 │   ├── ClientServer.py             # 🖥️ Main GUI Client Application
-│   └── secure_server.py            # 🔒 Advanced Secure Server with Admin GUI
-│
-├── 📁 Custom Module/               # Core Libraries & Security
-│   ├── chat_core.py                # 🏗️ Core classes (Message, User, Security)
-│   └── advanced_security_fixed.py  # 🛡️ Advanced cybersecurity features
+│   ├── secure_server.py            # 🔒 Advanced Secure Server with Admin GUI
+│   ├── core.py                     # 🏗️ Core classes (Message, User, Security)
+│   └── security.py                 # 🛡️ Advanced cybersecurity features
 │
 ├── 📁 Tests/                       # Testing & Verification Tools
 │   ├── Main_Test.py                # 🧪 Main test suite
 │   ├── verify_encryption.py        # ✅ Complete encryption verification
 │   ├── demo_usage.py               # 🎮 Usage demonstration
+│   ├── chat_core.py                # 🏗️ Core classes for TEST(Message, User, Security)
+│   ├── advanced_security_fixed.py  # 🛡️ Advanced cybersecurity features for TEST
 │   └── debug_client.py             # 🪲 Debug client for testing
 │
 ├── 📁 Read/                        # Documentation & Guides

@@ -128,7 +128,7 @@ class SecureChatServer:
             except:
                 try:
                     # Fallback to Fernet decryption for standard clients
-                    from chat_core import SecurityManager
+                    from core import SecurityManager
                     basic_security = SecurityManager()
                     decrypted_data = basic_security.decrypt_message(data)
                     username_data = json.loads(decrypted_data)
@@ -285,7 +285,7 @@ class SecureChatServer:
                 )
             except:
                 # Fallback to basic decryption for compatibility
-                from chat_core import SecurityManager
+                from core import SecurityManager
                 basic_security = SecurityManager()
                 decrypted_data = basic_security.decrypt_message(data.decode())
             
@@ -420,7 +420,7 @@ class SecureChatServer:
             
             if use_basic_encryption:
                 # Use Fernet encryption for standard clients
-                from chat_core import SecurityManager
+                from core import SecurityManager
                 basic_security = SecurityManager()
                 encrypted_data = basic_security.encrypt_message(json_data)
                 client_socket.send(encrypted_data.encode())
