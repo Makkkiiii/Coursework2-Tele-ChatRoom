@@ -282,7 +282,7 @@ The project is organized into logical folders to make navigation easier:
 │   ├── Main_Test.py                # 🧪 Main test suite
 │   ├── verify_encryption.py        # ✅ Complete encryption verification
 │   ├── demo_usage.py               # 🎮 Usage demonstration
-│   └── debug_client.py             # � Debug client for testing
+│   └── debug_client.py             # 🪲 Debug client for testing
 │
 ├── 📁 Read/                        # Documentation & Guides
 │   ├── SECURITY_FEATURES.md        # 🔐 Detailed security documentation
@@ -503,8 +503,8 @@ You can just make the script executable by adding the following command
 Give permissions
 
 ```
-chmod +x server.py
-chmod +x client.py
+chmod +x secure_server.py
+chmod +x ClientServer.py
 ```
 
 ### 3. Launching the program:
@@ -540,7 +540,7 @@ This program was written in Python using Visual Studio Code.
 
 https://github.com/user-attachments/assets/bf76838a-9796-4662-b53d-09a767bfef97
 
-### What to expect See
+### What to Expect
 
 - **Encrypted data**: Completely unreadable scrambled text
 - **Original data**: Readable after decryption with correct key
