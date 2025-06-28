@@ -2,7 +2,7 @@
 
 ## Proof of Concept
 
-This guide provides multiple ways to verify and demonstrate that your chat application properly encrypts messages.
+This guide provides multiple ways to verify and demonstrate that the chat application properly encrypts messages.
 
 ---
 
