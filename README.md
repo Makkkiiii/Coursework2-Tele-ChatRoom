@@ -286,9 +286,8 @@ The project is organized into logical folders to make navigation easier:
 │
 ├── 📁 Read/                        # Documentation & Guides
 │   ├── SECURITY_FEATURES.md        # 🔐 Detailed security documentation
-│   ├── ENCRYPTION_VERIFICATION.md  # 🔍 How to verify encryption works
-│   ├── GUI_IMPROVEMENTS_SUMMARY.md # 🎨 GUI enhancement details
-│   └── METRICS_FIX_SUMMARY.md      # 📈 Metrics and monitoring fixes
+│   └── ENCRYPTION_VERIFICATION.md  # 🔍 How to verify encryption works
+│
 │
 ├── 📁 received_files/              # 📥 Client downloaded files
 ├── 📁 server_files/                # 📤 Server shared files
