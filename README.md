@@ -3,7 +3,8 @@
  ### SCROLL TILL THE END FOR VIDEO DEMO
 
 
-![Designer (1)](https://github.com/user-attachments/assets/6ea6aff5-354a-42f7-8e11-877f7d0a28e4)
+![f425c385-dca5-4a4d-97f7-82d79f432a0e](https://github.com/user-attachments/assets/27c4c366-af02-4d54-a2f3-a0cc67ad4ada)
+
 
 
 
