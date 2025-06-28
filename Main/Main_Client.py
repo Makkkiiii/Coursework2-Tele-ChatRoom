@@ -322,7 +322,7 @@ class ModernChatGUI:
         """Setup connection controls"""
         tk.Label(
             self.connection_frame,
-            text="🔒 Advanced Secure Chat Client",
+            text="🔒 Telechat Client",
             font=("Arial", 14, "bold"),
             bg=self.colors["background"],
             fg=self.colors["text"]

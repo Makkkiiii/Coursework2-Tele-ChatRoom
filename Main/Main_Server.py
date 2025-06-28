@@ -545,7 +545,7 @@ class SecureServerGUI:
     
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("🔒 Advanced Secure Chat Server")
+        self.root.title("🔒 TeleChat Server")
         self.root.geometry("1000x700")
         self.root.configure(bg="#1a1a1a")
         

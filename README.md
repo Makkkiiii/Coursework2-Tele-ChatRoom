@@ -1,8 +1,8 @@
-# Advanced GUI Chat Application
+# Telechat
 
 ## Overview
 
-A comprehensive TCP-based chat room application built with Python, featuring modern GUI, end-to-end encryption, file sharing capabilities, and advanced programming concepts including Object-Oriented Programming (OOP) and Data Structures & Algorithms (DSA).
+TeleChat, a comprehensive TCP-based chat room application built with Python, featuring modern GUI, end-to-end encryption, file sharing capabilities, and advanced programming concepts including Object-Oriented Programming (OOP) and Data Structures & Algorithms (DSA).
 
 ![Advanced Chat Application](https://img.shields.io/badge/Python-3.12%2B-blue.svg)
 ![GUI](https://img.shields.io/badge/GUI-Tkinter-green.svg)
@@ -271,8 +271,8 @@ The project is organized into logical folders to make navigation easier:
 ```
 📁 ProgrammingAlgo2/
 ├── 📁 Main/                        # Core Application Files
-│   ├── ClientServer.py             # 🖥️ Main GUI Client Application
-│   ├── secure_server.py            # 🔒 Advanced Secure Server with Admin GUI
+│   ├── Main_Client.py             # 🖥️ Main GUI Client Application
+│   ├── Main_Server.py            # 🔒 Advanced Secure Server with Admin GUI
 │   ├── core.py                     # 🏗️ Core classes (Message, User, Security)
 │   └── security.py                 # 🛡️ Advanced cybersecurity features
 │
@@ -377,8 +377,8 @@ python demo_usage.py         # Usage demo
 
    ```bash
    cd Main
-   python secure_server.py    # Terminal 1
-   python ClientServer.py     # Terminal 2 (new terminal)
+   python Main_Server.py    # Terminal 1
+   python Main_Client.py     # Terminal 2 (new terminal)
    ```
 
 4. **📚 Read Documentation:**
@@ -502,15 +502,15 @@ You can just make the script executable by adding the following command
 Give permissions
 
 ```
-chmod +x secure_server.py
-chmod +x ClientServer.py
+chmod +x Main_Server.py
+chmod +x Main_Client.py
 ```
 
 ### 3. Launching the program:
 
 ```
-python3 secure_server.py
-python3 ClientServer.py
+python3 Main_Server.py
+python3 Main_Client.py
 ```
 
 ## 3. FOR MAC
