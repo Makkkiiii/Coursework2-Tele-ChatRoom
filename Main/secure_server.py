@@ -277,17 +277,10 @@ class SecureChatServer:
     def _process_secure_client_message(self, username, data, session_id, client_socket):
         """Process client message with security validation"""
         try:
-            # Decrypt message
-            try:
-                # Try hybrid decryption first
-                decrypted_data = self.security_manager.hybrid_crypto.decrypt_message(
-                    json.loads(data.decode())
-                )
-            except:
-                # Fallback to basic decryption for compatibility
-                from core import SecurityManager
-                basic_security = SecurityManager()
-                decrypted_data = basic_security.decrypt_message(data.decode())
+            # Decrypt message using basic encryption for compatibility with client
+            from core import SecurityManager
+            basic_security = SecurityManager()
+            decrypted_data = basic_security.decrypt_message(data.decode())
             
             message_data = json.loads(decrypted_data)
             msg_type = message_data.get("type", "text")
