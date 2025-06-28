@@ -1,5 +1,0 @@
-2025-06-28 08:27:03 - INFO - {"event_type": "TEST_EVENT", "user": "test_user", "details": "Testing security logging", "timestamp": "2025-06-28T08:27:03.620063", "severity": "INFO"}
-2025-06-28 08:27:03 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "test_user", "details": "IP: 192.168.1.1, Session: rezSmQwg...", "timestamp": "2025-06-28T08:27:03.848000", "severity": "INFO"}
-2025-06-28 08:27:03 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "test_user", "details": "Length: 6", "timestamp": "2025-06-28T08:27:03.848000", "severity": "INFO"}
-2025-06-28 08:27:03 - INFO - {"event_type": "FILE_PROCESSED", "user": "test_user", "details": "File: document.pdf, Size: 1024", "timestamp": "2025-06-28T08:27:03.848000", "severity": "INFO"}
-2025-06-28 08:27:03 - WARNING - {"event_type": "DANGEROUS_FILE", "user": "test_user", "details": "File: malware.exe", "timestamp": "2025-06-28T08:27:03.857730", "severity": "WARNING"}
