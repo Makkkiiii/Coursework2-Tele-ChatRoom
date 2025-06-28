@@ -274,7 +274,7 @@ class ModernChatGUI:
             "background": "#34495e",
             "chat_bg": "#2c3e50",
             "my_message": "#3498db",
-            "other_message": "#95a5a6"
+            "other_message": "#27ae60"
         }
         
         self.client = ChatClient()
@@ -877,18 +877,22 @@ class ModernChatGUI:
         self.add_system_message(f"Error: {message}")
     
     def test_encryption(self):
-        """Test and display encryption process"""
+        """Test and display encryption process using the last sent message"""
         if not hasattr(self.client, 'security_manager'):
             self.show_error("Security manager not available")
             return
             
-        # Test message
-        test_message = "🔒 This is a SECRET test message!"
+        # Use the last sent message if available, otherwise use a test message
+        if self.last_plain_data:
+            test_message = self.last_plain_data
+            self.add_system_message("🔬 TESTING YOUR ACTUAL MESSAGE ENCRYPTION")
+        else:
+            test_message = "🔒 Send a message first to see real encryption!"
+            self.add_system_message("🔬 ENCRYPTION TEST (send a message first for real data)")
         
         try:
             # Show the encryption process
-            self.add_system_message("🔬 ENCRYPTION TEST STARTED")
-            self.add_system_message(f"📝 Original message: '{test_message}'")
+            self.add_system_message(f"📝 Your original {self.last_message_type}: '{test_message}'")
             
             # Encrypt the message
             encrypted = self.client.security_manager.encrypt_message(test_message)
@@ -897,17 +901,17 @@ class ModernChatGUI:
             
             # Decrypt to verify
             decrypted = self.client.security_manager.decrypt_message(encrypted)
-            self.add_system_message(f"🔓 Decrypted message: '{decrypted}'")
+            self.add_system_message(f"🔓 Decrypted back to: '{decrypted}'")
             
             # Verify integrity
             if test_message == decrypted:
-                self.add_system_message("✅ ENCRYPTION TEST PASSED - Data integrity verified!")
+                self.add_system_message("✅ YOUR MESSAGE ENCRYPTION VERIFIED - Secure transmission!")
             else:
                 self.add_system_message("❌ ENCRYPTION TEST FAILED - Data corrupted!")
                 
-            # Store for detailed view
-            self.last_plain_data = test_message
-            self.last_encrypted_data = encrypted
+            # Update stored data if we used last message
+            if self.last_plain_data:
+                self.last_encrypted_data = encrypted
             
         except Exception as e:
             self.add_system_message(f"❌ Encryption test failed: {e}")
@@ -915,22 +919,22 @@ class ModernChatGUI:
     def show_encrypted_data(self):
         """Show detailed encryption data in a popup"""
         if not self.last_encrypted_data:
-            messagebox.showinfo("Info", "No encrypted data available. Send a message or share a file first.")
+            messagebox.showinfo("Info", "No encrypted data available. Send a message or share a file first to see YOUR actual encryption!")
             return
             
         # Create detailed popup window
         popup = tk.Toplevel(self.root)
-        popup.title("🔍 Your Last Message - Encryption Analysis")
+        popup.title("🔍 YOUR ACTUAL DATA - Encryption Analysis")
         popup.geometry("700x550")
         popup.configure(bg=self.colors["background"])
         
         # Header
         tk.Label(
             popup,
-            text=f"🔬 LIVE ENCRYPTION ANALYSIS - {self.last_message_type.upper()}",
+            text=f"🔬 YOUR REAL {self.last_message_type.upper()} ENCRYPTION ANALYSIS",
             font=("Arial", 14, "bold"),
             bg=self.colors["background"],
-            fg=self.colors["text"]
+            fg=self.colors["success"]
         ).pack(pady=10)
         
         # Create text widget for detailed view
@@ -947,35 +951,35 @@ class ModernChatGUI:
         action_type = "MESSAGE" if self.last_message_type == "text" else "FILE SHARE"
         
         # Insert live analysis of user's actual data
-        analysis = f"""🔍 LIVE ENCRYPTION ANALYSIS - YOUR {action_type}
+        analysis = f"""🔍 YOUR ACTUAL {action_type} ENCRYPTION ANALYSIS
 {'='*60}
 
-📝 YOUR ORIGINAL {action_type}:
+📝 WHAT YOU SENT ({action_type}):
 "{self.last_plain_data}"
 
-🔐 WHAT GETS TRANSMITTED (Encrypted):
+🔐 HOW IT WAS TRANSMITTED (Encrypted):
 {self.last_encrypted_data}
 
 📊 ENCRYPTION COMPARISON:
-• Original Size: {len(self.last_plain_data)} characters
+• Your Original Size: {len(self.last_plain_data)} characters
 • Encrypted Size: {len(self.last_encrypted_data)} characters  
 • Security Overhead: +{len(self.last_encrypted_data) - len(self.last_plain_data)} bytes
 
 🛡️ SECURITY ANALYSIS:
-✅ Your {action_type.lower()} is completely scrambled
+✅ YOUR {action_type.lower()} is completely scrambled
 ✅ No readable text visible in encrypted data
 ✅ AES-256 encryption applied successfully
 ✅ PBKDF2 key derivation protects against attacks
 
 🚨 WHAT HACKERS SEE ON THE NETWORK:
-If someone intercepts your data, they only see scrambled text like:
+If someone intercepts YOUR data, they only see scrambled text like:
 {self.last_encrypted_data[:100]}{'...' if len(self.last_encrypted_data) > 100 else ''}
 
 ❌ WITHOUT ENCRYPTION (DANGEROUS):
 Hackers would see exactly: "{self.last_plain_data}"
 
 🔒 CONCLUSION: 
-Your {action_type.lower()} is SECURE and protected from eavesdropping!
+YOUR {action_type.lower()} is SECURE and protected from eavesdropping!
 
 🎯 TECHNICAL DETAILS:
 • Algorithm: AES-256 (Fernet) - Military grade
