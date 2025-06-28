@@ -12,13 +12,6 @@ A comprehensive TCP-based chat room application built with Python, featuring mod
 
 ## ⚡ Quick Start - Verify Encryption Works
 
-**30-second proof:**
-
-```bash
-cd Tests
-python prove_encryption.py
-```
-
 **Complete verification:**
 
 ```bash
@@ -26,11 +19,11 @@ cd Tests
 python verify_encryption.py
 ```
 
-**GUI demonstration:**
+**Usage demonstration:**
 
 ```bash
 cd Tests
-python encryption_tester.py
+python demo_usage.py
 ```
 
 **What you'll see:**
@@ -122,14 +115,7 @@ cd Main
 python ClientServer.py
 ```
 
-### Method 2: Quick Encryption Verification
-
-**30-second proof:**
-
-```bash
-cd Tests
-python prove_encryption.py
-```
+### Method 2: Quick Verification
 
 **Complete verification:**
 
@@ -138,11 +124,11 @@ cd Tests
 python verify_encryption.py
 ```
 
-**GUI demonstration:**
+**Usage demonstration:**
 
 ```bash
 cd Tests
-python encryption_tester.py
+python demo_usage.py
 ```
 
 ## 📖 Usage Guide
@@ -258,30 +244,23 @@ Run the comprehensive test suite:
 
 ```bash
 cd Tests
-python test_chat_app.py
+python Main_Test.py
 ```
 
 ### Quick Verification Tools
-
-**Encryption Proof (30 seconds):**
-
-```bash
-cd Tests
-python prove_encryption.py
-```
-
-**Visual Encryption Testing:**
-
-```bash
-cd Tests
-python encryption_tester.py
-```
 
 **Complete Verification:**
 
 ```bash
 cd Tests
 python verify_encryption.py
+```
+
+**Usage Demonstration:**
+
+```bash
+cd Tests
+python demo_usage.py
 ```
 
 ### Test Coverage
@@ -349,7 +328,7 @@ python verify_encryption.py
 - **Encryption Errors**: Fallback to plain text with warnings
 - **Network Issues**: Timeout handling and user notification
 
-## � Project Structure
+## 🧩 Project Structure
 
 The project is organized into logical folders to make navigation easier:
 
@@ -361,18 +340,13 @@ The project is organized into logical folders to make navigation easier:
 │
 ├── 📁 Custom Module/               # Core Libraries & Security
 │   ├── chat_core.py                # 🏗️ Core classes (Message, User, Security)
-│   ├── advanced_security_fixed.py  # 🛡️ Advanced cybersecurity features
-│   └── debug_client.py             # 🐛 Debug client for testing
+│   └── advanced_security_fixed.py  # 🛡️ Advanced cybersecurity features
 │
 ├── 📁 Tests/                       # Testing & Verification Tools
-│   ├── test_chat_app.py            # 🧪 Main test suite
-│   ├── encryption_tester.py        # 🔬 GUI encryption verification
-│   ├── prove_encryption.py         # ⚡ Quick encryption proof (30 sec)
+│   ├── Main_Test.py                # 🧪 Main test suite
 │   ├── verify_encryption.py        # ✅ Complete encryption verification
 │   ├── demo_usage.py               # 🎮 Usage demonstration
-│   ├── test_gui_fixes.py           # 🔧 GUI testing fixes
-│   ├── test_metrics_fix.py         # 📊 Metrics testing
-│   └── test_server.py              # 🖧 Server testing utilities
+│   └── debug_client.py             # � Debug client for testing
 │
 ├── 📁 Read/                        # Documentation & Guides
 │   ├── SECURITY_FEATURES.md        # 🔐 Detailed security documentation
@@ -406,7 +380,6 @@ The project is organized into logical folders to make navigation easier:
 
 - **`chat_core.py`** - Core classes (Message, User, SecurityManager, FileManager)
 - **`advanced_security_fixed.py`** - Enterprise-grade security (encryption, rate limiting, audit logging)
-- **`debug_client.py`** - Debugging utilities for development
 
 **How to use:** These are imported by the main applications - no need to run directly
 
@@ -414,19 +387,18 @@ The project is organized into logical folders to make navigation easier:
 
 **What it contains:** Tools to test and verify everything works
 
-- **`prove_encryption.py`** - Quick 30-second encryption proof for professors
+- **`Main_Test.py`** - Main test suite for all features
 - **`verify_encryption.py`** - Complete encryption verification suite
-- **`encryption_tester.py`** - GUI tool to visually test encryption
-- **`test_chat_app.py`** - Comprehensive test suite for all features
 - **`demo_usage.py`** - Usage demonstration examples
+- **`debug_client.py`** - Debug client for testing
 
 **How to use:**
 
 ```bash
 cd Tests
-python prove_encryption.py    # Quick demo
-python encryption_tester.py   # Visual testing
-python test_chat_app.py       # Full test suite
+python Main_Test.py           # Main test suite
+python verify_encryption.py  # Encryption verification
+python demo_usage.py         # Usage demo
 ```
 
 #### 📁 `Read/` - Documentation Hub
@@ -459,11 +431,11 @@ python test_chat_app.py       # Full test suite
    pip install pillow cryptography
    ```
 
-2. **🚀 Quick Demo (30 seconds):**
+2. **🚀 Quick Demo:**
 
    ```bash
    cd Tests
-   python prove_encryption.py
+   python verify_encryption.py
    ```
 
 3. **🖥️ Run the Application:**
@@ -480,24 +452,24 @@ python test_chat_app.py       # Full test suite
 
 ### For Professors/Reviewers
 
-1. **⚡ Quick Encryption Proof:**
+1. **✅ Complete Verification:**
 
    ```bash
    cd Tests
-   python prove_encryption.py
+   python verify_encryption.py
    ```
 
-2. **🔬 Visual Testing:**
+2. **🎮 Usage Demo:**
 
    ```bash
    cd Tests
-   python encryption_tester.py
+   python demo_usage.py
    ```
 
 3. **📊 Full Test Suite:**
    ```bash
    cd Tests
-   python test_chat_app.py
+   python Main_Test.py
    ```
 
 ### For Developers
@@ -510,7 +482,8 @@ python test_chat_app.py       # Full test suite
 2. **🧪 Testing:**
 
    - Run tests from `Tests/` folder
-   - Check `Tests/test_gui_fixes.py` for GUI testing
+   - Check `Tests/Main_Test.py` for comprehensive testing
+   - Use `Tests/debug_client.py` for debugging
 
 3. **📖 Documentation:**
    - Read all files in `Read/` folder
