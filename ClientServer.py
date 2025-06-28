@@ -14,7 +14,10 @@ from chat_core import (
     SecurityManager, Message, FileManager
 )
 from PIL import Image, ImageTk
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from __main__ import ModernChatGUI
 
 
 class ChatClient:
@@ -32,7 +35,7 @@ class ChatClient:
         self.file_manager = FileManager("received_files")
         
         # GUI reference
-        self.gui = None
+        self.gui: Optional['ModernChatGUI'] = None
         
         # Message handlers
         self.message_handlers = {

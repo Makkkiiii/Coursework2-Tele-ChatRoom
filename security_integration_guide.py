@@ -4,7 +4,12 @@ This file shows how to integrate the advanced security features
 into your existing chat application.
 """
 
-from advanced_security import (
+import socket
+import json
+import time
+from typing import Dict, Tuple, Optional
+
+from advanced_security_fixed import (
     AdvancedSecurityManager, SECURITY_CONFIG,
     SecurityAuditLogger, RateLimiter, InputValidator,
     SessionManager, HybridCrypto, DigitalSignature
@@ -22,7 +27,15 @@ class SecureChatServer:
         self.security_manager = AdvancedSecurityManager(SECURITY_CONFIG)
         
         # Other components (similar to your existing code)
+        self.client_sessions = {}  # Track client sessions
         # ... existing initialization code ...
+    
+    def get_client_ip(self, client_socket) -> str:
+        """Get client IP address from socket"""
+        try:
+            return client_socket.getpeername()[0]
+        except:
+            return "unknown"
     
     def handle_user_authentication(self, username, client_address):
         """Enhanced user authentication with security checks"""

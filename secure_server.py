@@ -9,13 +9,17 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 import json
 from datetime import datetime
+from typing import Optional, TYPE_CHECKING
 from chat_core import (
     Message, MessageQueue, UserManager, 
     FileManager, ChatHistory
 )
-from advanced_security import (
+from advanced_security_fixed import (
     AdvancedSecurityManager, SECURITY_CONFIG
 )
+
+if TYPE_CHECKING:
+    from __main__ import SecureServerGUI
 
 
 class SecureChatServer:
@@ -45,7 +49,7 @@ class SecureChatServer:
         self.client_ips = {}     # {client_socket: ip_address}
         
         # GUI reference
-        self.gui = None
+        self.gui: Optional['SecureServerGUI'] = None
         
     def start_server(self):
         """Start the secure server"""
@@ -178,14 +182,22 @@ class SecureChatServer:
                         break
                     
                     # Validate session before processing
-                    is_valid, session_username = self.security_manager.validate_session(
-                        session_id, client_ip
-                    )
-                    
-                    if not is_valid or session_username != username:
+                    if session_id:
+                        is_valid, session_username = self.security_manager.validate_session(
+                            session_id, client_ip
+                        )
+                        
+                        if not is_valid or session_username != username:
+                            self._send_secure_message(client_socket, {
+                                "type": "error",
+                                "content": "🚫 Session expired or invalid. Please reconnect."
+                            })
+                            break
+                    else:
+                        # No session ID available
                         self._send_secure_message(client_socket, {
                             "type": "error",
-                            "content": "🚫 Session expired or invalid. Please reconnect."
+                            "content": "🚫 No valid session. Please reconnect."
                         })
                         break
                     

@@ -9,6 +9,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 import json
 from datetime import datetime
+from typing import Optional
 from chat_core import (
     SecurityManager, Message, MessageQueue, UserManager, 
     FileManager, ChatHistory
@@ -36,7 +37,7 @@ class ChatServer:
         self.message_count = 0
         
         # GUI reference
-        self.gui = None
+        self.gui: Optional['ServerGUI'] = None
         
     def start_server(self):
         """Start the server and begin accepting connections"""
