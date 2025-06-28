@@ -13,9 +13,9 @@ Softwarica College of IT and E-Commerce
 
 "Coursework 2"
 
-Programming and Algorithm 1 (**Python**) - Lecturer: Suman Shrestha
+Programming and Algorithm 2 (**Python**) - Lecturer: Suman Shrestha
 
-TCP Chat Room - 26th June (1st Semester)
+TCP Chat Room - 28th June (3rd Semester)
 
 ## About
 
@@ -66,7 +66,7 @@ You can either compile the source code or use the pre-compiled executable file t
 
 ### 1. Clone the repository:
    ```
-   git clone https://github.com/Makkkiiii/Coursework2-TCPChatRoom.git
+   git clone https://github.com/Makkkiiii/Coursework2-Tele-ChatRoom.git
    ```
 ### 2. Compiling
 
@@ -119,10 +119,7 @@ Follow the given instructions inside the program
 This program was written in Python using Visual Studio Code.
 
 # Video Demo
-## FOR CLI
 
-
-https://github.com/user-attachments/assets/12a9ff28-5440-4650-a408-a69068feaa3f
 
 
 
