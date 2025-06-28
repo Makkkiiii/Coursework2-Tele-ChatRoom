@@ -171,12 +171,12 @@ class TestUserManager(unittest.TestCase):
         mock_socket = MockSocket()
         
         # Add user
-        self.assertTrue(self.user_manager.add_user("TestUser", mock_socket))
+        self.assertTrue(self.user_manager.add_user("TestUser", mock_socket)) # type: ignore
         self.assertTrue(self.user_manager.user_exists("TestUser"))
         self.assertIn("TestUser", self.user_manager.get_users())
         
         # Try to add duplicate user
-        self.assertFalse(self.user_manager.add_user("TestUser", mock_socket))
+        self.assertFalse(self.user_manager.add_user("TestUser", mock_socket)) # type: ignore
         
         # Get user socket
         retrieved_socket = self.user_manager.get_user_socket("TestUser")
@@ -197,7 +197,7 @@ class TestUserManager(unittest.TestCase):
             for i in range(start_id, start_id + count):
                 username = f"User{i}"
                 socket = MockSocket(username)
-                self.user_manager.add_user(username, socket)
+                self.user_manager.add_user(username, socket) # type: ignore
         
         # Add users from multiple threads
         threads = []
@@ -448,9 +448,7 @@ if __name__ == "__main__":
     if success:
         print("\n✅ Core components tested successfully!")
         print("🚀 You can now run the chat application:")
-        print("   1. Run 'python launcher.py' to start the launcher")
-        print("   2. Or run 'python TCPServer.py' to start the server")
-        print("   3. Or run 'python ClientServer.py' to start a client")
+
     else:
         print("\n❌ Some tests failed. Please check the implementation before running the application.")
     

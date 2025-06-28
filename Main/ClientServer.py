@@ -10,7 +10,7 @@ from tkinter import ttk, filedialog, messagebox, scrolledtext
 import json
 import os
 from datetime import datetime
-from chat_core import (
+from core import (
     SecurityManager, Message, FileManager
 )
 from PIL import Image, ImageTk

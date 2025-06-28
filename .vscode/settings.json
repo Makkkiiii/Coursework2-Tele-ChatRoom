@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./Custom Module",
+        "./Tests+Module"
+    ]
+}

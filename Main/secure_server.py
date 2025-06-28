@@ -10,11 +10,11 @@ from tkinter import ttk, scrolledtext, messagebox
 import json
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING
-from chat_core import (
+from core import (
     Message, MessageQueue, UserManager, 
     FileManager, ChatHistory
 )
-from advanced_security_fixed import (
+from security import (
     AdvancedSecurityManager, SECURITY_CONFIG
 )
 
