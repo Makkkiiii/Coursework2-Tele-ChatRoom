@@ -8,6 +8,9 @@ A comprehensive TCP-based chat room application built with Python, featuring mod
 ![GUI](https://img.shields.io/badge/GUI-Tkinter-green.svg)
 ![Encryption](https://img.shields.io/badge/Encryption-Fernet-red.svg)
 
+![f425c385-dca5-4a4d-97f7-82d79f432a0e](https://github.com/user-attachments/assets/6bf05b95-cbcf-4192-9f07-74d6a594018b)
+
+
 ## ⚡ Quick Start - Verify Encryption Works
 
 **30-second proof:**
