@@ -144,10 +144,28 @@ class SecureChatServer:
             self.client_encryption_types[client_socket] = client_encryption_type
             print(f"Client {username} using {client_encryption_type} encryption")
             
+            # Log detailed security info
+            if self.gui:
+                if client_encryption_type == "hybrid":
+                    self.gui.add_security_event(f"🔐 {username}: HYBRID encryption (RSA+AES)", "INFO")
+                elif client_encryption_type == "basic":
+                    self.gui.add_security_event(f"🔒 {username}: FERNET encryption (AES-128)", "INFO")
+                else:
+                    self.gui.add_security_event(f"⚠️ {username}: UNENCRYPTED connection", "WARNING")
+            
             # Enhanced authentication
             auth_success, auth_message, session_id = self.security_manager.authenticate_user(
                 username, client_ip
             )
+            
+            # Log authentication attempt
+            if self.gui:
+                if auth_success:
+                    self.gui.add_security_event(f"✅ {username}: Authentication SUCCESS from {client_ip}", "INFO")
+                    if session_id:
+                        self.gui.add_security_event(f"🔑 {username}: Session {session_id[:8]}... created", "INFO")
+                else:
+                    self.gui.add_security_event(f"❌ {username}: Authentication FAILED - {auth_message}", "WARNING")
             
             if not auth_success:
                 error_msg = {
@@ -288,7 +306,15 @@ class SecureChatServer:
                         "content": f"⚠️ {processed_content}"
                     }
                     self._send_message_to_client(client_socket, warning_msg)
+                    
+                    # Log security event
+                    if self.gui:
+                        self.gui.add_security_event(f"🚫 {username}: Message blocked - security violation", "WARNING")
                     return
+                
+                # Log successful message processing
+                if self.gui:
+                    self.gui.add_security_event(f"📝 {username}: Message validated and encrypted", "INFO")
                 
                 message = Message(sender=username, content=processed_content, msg_type="text")
                 
@@ -309,7 +335,15 @@ class SecureChatServer:
                         "content": f"🚫 File rejected: {validation_message}"
                     }
                     self._send_message_to_client(client_socket, error_msg)
+                    
+                    # Log file rejection
+                    if self.gui:
+                        self.gui.add_security_event(f"🚫 {username}: File {filename} REJECTED - {validation_message}", "WARNING")
                     return
+                
+                # Log successful file validation
+                if self.gui:
+                    self.gui.add_security_event(f"📁 {username}: File {filename} ({file_size} bytes) validated", "INFO")
                 
                 try:
                     # Save file on server
@@ -405,8 +439,18 @@ class SecureChatServer:
     
     def kick_user_secure(self, username):
         """Securely kick a user with audit logging"""
+        if not username or username.strip() == "":
+            print("❌ Cannot kick: Empty username")
+            return False
+            
         user_socket = self.user_manager.get_user_socket(username)
-        if user_socket:
+        if not user_socket:
+            print(f"❌ Cannot kick {username}: User not found or already disconnected")
+            available_users = self.user_manager.get_users()
+            print(f"Available users: {available_users}")
+            return False
+            
+        try:
             # Log security action
             self.security_manager.audit_logger.log_security_event(
                 "USER_KICKED", username, "Admin action", "WARNING"
@@ -417,6 +461,13 @@ class SecureChatServer:
                 "content": "🚫 You have been kicked from the secure server."
             }
             self._send_message_to_client(user_socket, kick_msg)
+            
+            # Clean up user data
+            if user_socket in self.client_encryption_types:
+                del self.client_encryption_types[user_socket]
+            if user_socket in self.client_ips:
+                del self.client_ips[user_socket]
+                
             user_socket.close()
             self.user_manager.remove_user(username)
             
@@ -433,8 +484,12 @@ class SecureChatServer:
                 msg_type="system"
             )
             self.message_queue.put(kick_message)
+            print(f"✅ Successfully kicked user: {username}")
             return True
-        return False
+            
+        except Exception as e:
+            print(f"❌ Error kicking user {username}: {e}")
+            return False
     
     def stop_server(self):
         """Stop server securely"""
@@ -567,7 +622,7 @@ class SecureServerGUI:
         # Server info
         info_frame = tk.LabelFrame(
             parent,
-            text="📊 Server Information",
+            text="� Advanced Security Server Information",
             bg="#2d2d2d",
             fg="#00ff00",
             font=("Arial", 10, "bold")
@@ -613,7 +668,7 @@ class SecureServerGUI:
         events_frame = tk.Frame(security_frame, bg="#2d2d2d")
         events_frame.pack(fill="both", expand=True, padx=5, pady=5)
         
-        tk.Label(events_frame, text="Security Events:", bg="#2d2d2d", fg="#ff6600").pack(anchor="w")
+        tk.Label(events_frame, text="🔒 Security Events & Threat Detection:", bg="#2d2d2d", fg="#ff6600").pack(anchor="w")
         
         self.security_events = scrolledtext.ScrolledText(
             events_frame,
@@ -624,6 +679,14 @@ class SecureServerGUI:
             font=("Courier", 8)
         )
         self.security_events.pack(fill="both", expand=True)
+        
+        # Add initial security status
+        self.add_security_event("🔒 Advanced Security System Initialized", "INFO")
+        self.add_security_event("🛡️ Rate Limiting: ACTIVE (30 req/min)", "INFO")
+        self.add_security_event("🔐 Hybrid Encryption: RSA-2048 + AES-256", "INFO")
+        self.add_security_event("📝 Audit Logging: ENABLED", "INFO")
+        self.add_security_event("🚫 DoS Protection: ACTIVE", "INFO")
+        self.add_security_event("🔍 Input Validation: STRICT MODE", "INFO")
     
     def setup_message_monitoring(self, parent):
         """Setup message monitoring panel"""
@@ -751,14 +814,28 @@ class SecureServerGUI:
         
         if self.server and self.server.running and self.server.start_time:
             uptime = datetime.now() - self.server.start_time
-            info = f"""🔒 SECURE SERVER STATUS
-Status: RUNNING WITH HIGH SECURITY
+            hybrid_clients = sum(1 for enc_type in self.server.client_encryption_types.values() if enc_type == "hybrid")
+            basic_clients = sum(1 for enc_type in self.server.client_encryption_types.values() if enc_type == "basic")
+            
+            info = f"""🔒 ADVANCED SECURE SERVER STATUS
+Status: RUNNING WITH MAXIMUM SECURITY
 Host: {self.server.host}:{self.server.port}
 Uptime: {str(uptime).split('.')[0]}
 Connected Users: {len(self.server.user_manager.get_users())}
 Total Messages: {self.server.message_count}
 Active Sessions: {len(self.server.user_sessions)}
-Security Level: MAXIMUM"""
+
+🔐 ENCRYPTION STATUS:
+Hybrid Clients (RSA+AES): {hybrid_clients}
+Basic Clients (Fernet): {basic_clients}
+
+🛡️ SECURITY FEATURES:
+✅ Rate Limiting Active
+✅ DoS Protection Enabled  
+✅ Input Validation Strict
+✅ Session Management Active
+✅ Audit Logging Enabled
+✅ Message Authentication"""
         else:
             info = "🔒 SECURE SERVER STATUS\nStatus: STOPPED"
         

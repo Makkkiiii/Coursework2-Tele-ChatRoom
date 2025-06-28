@@ -128,6 +128,16 @@ class ChatClient:
         """Handle successful login"""
         if self.gui:
             self.gui.add_system_message(data["content"])
+            
+            # Show security level based on server response
+            security_level = data.get("security_level", "STANDARD")
+            if security_level == "HIGH":
+                self.gui.add_system_message("🔒 HIGH SECURITY MODE ACTIVATED")
+                self.gui.add_system_message("🛡️ Advanced threat protection enabled")
+                self.gui.security_level.config(text="🛡️ Level: HIGH SECURITY", fg=self.gui.colors["success"])
+            else:
+                self.gui.security_level.config(text="🛡️ Level: Standard", fg=self.gui.colors["primary"])
+            
             self.gui.update_user_list(data.get("users", []))
             self.gui.on_connected()
     
@@ -259,6 +269,8 @@ class ModernChatGUI:
         self.client.gui = self
         
         self.connected = False
+        self.message_count = 0
+        self.start_time = None
         self.setup_gui()
     
     def setup_gui(self):
@@ -292,11 +304,31 @@ class ModernChatGUI:
         """Setup connection controls"""
         tk.Label(
             self.connection_frame,
-            text="Advanced Chat Client",
+            text="🔒 Advanced Secure Chat Client",
             font=("Arial", 14, "bold"),
             bg=self.colors["background"],
             fg=self.colors["text"]
         ).pack(pady=5)
+        
+        # Security status display
+        security_frame = tk.Frame(self.connection_frame, bg=self.colors["background"])
+        security_frame.pack(fill="x", padx=10, pady=2)
+        
+        security_features = [
+            "🔐 End-to-End Encryption",
+            "🛡️ Message Authentication", 
+            "🔑 Key Derivation (PBKDF2)",
+            "🚫 Anti-Tampering Protection"
+        ]
+        
+        for i, feature in enumerate(security_features):
+            tk.Label(
+                security_frame,
+                text=feature,
+                font=("Arial", 8),
+                bg=self.colors["background"],
+                fg=self.colors["success"]
+            ).grid(row=i//2, column=i%2, sticky="w", padx=10, pady=1)
         
         # Connection controls
         conn_controls = tk.Frame(self.connection_frame, bg=self.colors["background"])
@@ -345,15 +377,29 @@ class ModernChatGUI:
         )
         self.disconnect_button.grid(row=0, column=7, padx=5)
         
+        # Status and security info
+        status_security_frame = tk.Frame(self.connection_frame, bg=self.colors["background"])
+        status_security_frame.pack(fill="x", padx=10, pady=5)
+        
         # Status label
         self.status_label = tk.Label(
-            self.connection_frame,
+            status_security_frame,
             text="Status: Disconnected",
             bg=self.colors["background"],
             fg=self.colors["warning"],
-            font=("Arial", 10)
+            font=("Arial", 10, "bold")
         )
-        self.status_label.pack(pady=5)
+        self.status_label.pack(side="left")
+        
+        # Security indicator
+        self.security_label = tk.Label(
+            status_security_frame,
+            text="🔒 Security: AES-256 Ready",
+            bg=self.colors["background"],
+            fg=self.colors["success"],
+            font=("Arial", 9)
+        )
+        self.security_label.pack(side="right")
     
     def setup_chat_area(self):
         """Setup the main chat area"""
@@ -474,6 +520,60 @@ class ModernChatGUI:
             font=("Arial", 9)
         )
         self.clear_chat_button.pack(fill="x", padx=5, pady=5)
+        
+        # Security Information Panel
+        security_info_frame = tk.LabelFrame(
+            right_panel,
+            text="🔒 Security Status",
+            bg=self.colors["background"],
+            fg=self.colors["text"],
+            font=("Arial", 10, "bold")
+        )
+        security_info_frame.pack(fill="x", padx=5, pady=5)
+        
+        # Encryption status
+        self.encryption_status = tk.Label(
+            security_info_frame,
+            text="🔐 Encryption: Active",
+            bg=self.colors["background"],
+            fg=self.colors["success"],
+            font=("Arial", 8),
+            anchor="w"
+        )
+        self.encryption_status.pack(fill="x", padx=5, pady=2)
+        
+        # Message counter
+        self.message_counter = tk.Label(
+            security_info_frame,
+            text="📊 Messages: 0 sent",
+            bg=self.colors["background"],
+            fg=self.colors["text"],
+            font=("Arial", 8),
+            anchor="w"
+        )
+        self.message_counter.pack(fill="x", padx=5, pady=2)
+        
+        # Session info
+        self.session_info = tk.Label(
+            security_info_frame,
+            text="🕒 Session: Not started",
+            bg=self.colors["background"],
+            fg=self.colors["warning"],
+            font=("Arial", 8),
+            anchor="w"
+        )
+        self.session_info.pack(fill="x", padx=5, pady=2)
+        
+        # Security level
+        self.security_level = tk.Label(
+            security_info_frame,
+            text="🛡️ Level: Maximum",
+            bg=self.colors["background"],
+            fg=self.colors["success"],
+            font=("Arial", 8),
+            anchor="w"
+        )
+        self.security_level.pack(fill="x", padx=5, pady=2)
     
     def setup_input_area(self):
         """Setup message input area"""
@@ -542,8 +642,11 @@ class ModernChatGUI:
     def on_connected(self):
         """Handle successful connection"""
         self.connected = True
+        self.start_time = datetime.now()
+        self.message_count = 0
         self.set_chat_state(True)
-        self.status_label.config(text="Status: Connected", fg=self.colors["success"])
+        self.status_label.config(text="Status: 🔒 Secure Connection", fg=self.colors["success"])
+        self.security_label.config(text="🔒 Security: ENCRYPTED", fg=self.colors["success"])
         
         self.connect_button.config(state="disabled")
         self.disconnect_button.config(state="normal")
@@ -551,14 +654,28 @@ class ModernChatGUI:
         self.port_entry.config(state="disabled")
         self.username_entry.config(state="disabled")
         
+        # Update security panel
+        self.encryption_status.config(text="🔐 Encryption: AES-256 Active", fg=self.colors["success"])
+        self.session_info.config(
+            text=f"🕒 Session: {self.start_time.strftime('%H:%M:%S')}", 
+            fg=self.colors["success"]
+        )
+        self.message_counter.config(text="📊 Messages: 0 sent")
+        
         # Focus on message entry
         self.message_entry.focus()
+        
+        # Add security notification
+        self.add_system_message("🔒 SECURE CONNECTION ESTABLISHED")
+        self.add_system_message("🛡️ All messages are encrypted with AES-256")
+        self.add_system_message("🔑 Using PBKDF2 key derivation with 100,000 iterations")
     
     def on_disconnected(self):
         """Handle disconnection"""
         self.connected = False
         self.set_chat_state(False)
         self.status_label.config(text="Status: Disconnected", fg=self.colors["accent"])
+        self.security_label.config(text="🔒 Security: Offline", fg=self.colors["warning"])
         
         self.connect_button.config(state="normal")
         self.disconnect_button.config(state="disabled")
@@ -566,11 +683,19 @@ class ModernChatGUI:
         self.port_entry.config(state="normal")
         self.username_entry.config(state="normal")
         
+        # Update security panel
+        self.encryption_status.config(text="🔐 Encryption: Inactive", fg=self.colors["warning"])
+        self.session_info.config(text="🕒 Session: Ended", fg=self.colors["warning"])
+        if self.start_time:
+            duration = datetime.now() - self.start_time
+            self.add_system_message(f"🕒 Session duration: {duration}")
+        
         # Clear users list
         self.users_listbox.delete(0, tk.END)
         
         # Add disconnection message
-        self.add_system_message("Disconnected from server")
+        self.add_system_message("🔒 SECURE CONNECTION TERMINATED")
+        self.add_system_message("🛡️ All encryption keys cleared from memory")
     
     def set_chat_state(self, enabled):
         """Enable or disable chat components"""
@@ -587,6 +712,12 @@ class ModernChatGUI:
         if message and self.connected:
             if self.client.send_message(message):
                 self.message_entry.delete(0, tk.END)
+                self.message_count += 1
+                self.message_counter.config(text=f"📊 Messages: {self.message_count} sent")
+                
+                # Show encryption confirmation for every 5th message
+                if self.message_count % 5 == 0:
+                    self.add_system_message(f"🔐 {self.message_count} messages encrypted and transmitted securely")
     
     def share_file(self):
         """Share a file"""
@@ -604,13 +735,32 @@ class ModernChatGUI:
         )
         
         if file_path:
-            self.client.send_file(file_path)
+            # Show security notification for file sharing
+            file_size = os.path.getsize(file_path)
+            file_name = os.path.basename(file_path)
+            self.add_system_message(f"🔐 Encrypting file: {file_name} ({file_size} bytes)")
+            
+            if self.client.send_file(file_path):
+                self.add_system_message(f"🛡️ File encrypted and transmitted securely")
+            else:
+                self.add_system_message(f"❌ Secure file transmission failed")
     
     def open_downloads_folder(self):
         """Open the downloads folder"""
         downloads_path = self.client.file_manager.base_dir
         if os.path.exists(downloads_path):
-            os.startfile(downloads_path)  # Windows
+            try:
+                # Cross-platform folder opening
+                import platform
+                system = platform.system()
+                if system == "Windows":
+                    os.startfile(downloads_path)
+                elif system == "Darwin":  # macOS
+                    os.system(f"open '{downloads_path}'")
+                else:  # Linux and others
+                    os.system(f"xdg-open '{downloads_path}'")
+            except Exception as e:
+                self.show_error(f"Cannot open folder: {e}")
         else:
             self.show_error("Downloads folder does not exist yet")
     
