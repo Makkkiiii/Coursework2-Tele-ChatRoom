@@ -47,6 +47,7 @@ class SecureChatServer:
         # Session tracking
         self.user_sessions = {}  # {username: session_id}
         self.client_ips = {}     # {client_socket: ip_address}
+        self.client_encryption_types = {}  # {client_socket: "basic" or "hybrid"}
         
         # GUI reference
         self.gui: Optional['SecureServerGUI'] = None
@@ -102,29 +103,46 @@ class SecureChatServer:
         client_ip = client_address[0]
         
         try:
-            # Send welcome message
+            # Send welcome message using basic encryption (for compatibility)
             welcome_msg = {
                 "type": "server_message",
                 "content": "🔒 Welcome to Secure Chat! Please send your username."
             }
-            self._send_secure_message(client_socket, welcome_msg)
+            self._send_secure_message(client_socket, welcome_msg, use_basic_encryption=True)
             
             # Receive and validate username
             data = client_socket.recv(1024).decode()
             if not data:
                 return
             
+            client_encryption_type = "hybrid"  # Default to hybrid
+            
             try:
-                # Decrypt username data
+                # Try hybrid encryption first (for advanced clients)
                 decrypted_data = self.security_manager.hybrid_crypto.decrypt_message(
                     json.loads(data)
                 )
                 username_data = json.loads(decrypted_data)
                 username = username_data.get("username", "").strip()
+                client_encryption_type = "hybrid"
             except:
-                # Fallback to basic decryption for compatibility
-                username_data = json.loads(data)
-                username = username_data.get("username", "").strip()
+                try:
+                    # Fallback to Fernet decryption for standard clients
+                    from chat_core import SecurityManager
+                    basic_security = SecurityManager()
+                    decrypted_data = basic_security.decrypt_message(data)
+                    username_data = json.loads(decrypted_data)
+                    username = username_data.get("username", "").strip()
+                    client_encryption_type = "basic"
+                except:
+                    # Final fallback to plain JSON (unencrypted)
+                    username_data = json.loads(data)
+                    username = username_data.get("username", "").strip()
+                    client_encryption_type = "none"
+            
+            # Track client encryption type
+            self.client_encryption_types[client_socket] = client_encryption_type
+            print(f"Client {username} using {client_encryption_type} encryption")
             
             # Enhanced authentication
             auth_success, auth_message, session_id = self.security_manager.authenticate_user(
@@ -136,7 +154,7 @@ class SecureChatServer:
                     "type": "error", 
                     "content": f"🚫 Authentication failed: {auth_message}"
                 }
-                self._send_secure_message(client_socket, error_msg)
+                self._send_message_to_client(client_socket, error_msg)
                 return
             
             # Check if user already exists (prevent duplicate logins)
@@ -145,7 +163,7 @@ class SecureChatServer:
                     "type": "error",
                     "content": "🚫 Username already taken or invalid."
                 }
-                self._send_secure_message(client_socket, error_msg)
+                self._send_message_to_client(client_socket, error_msg)
                 return
             
             # Store session
@@ -158,7 +176,7 @@ class SecureChatServer:
                 "users": self.user_manager.get_users(),
                 "security_level": "HIGH"
             }
-            self._send_secure_message(client_socket, success_msg)
+            self._send_message_to_client(client_socket, success_msg)
             
             # Notify other users
             join_message = Message(
@@ -226,18 +244,11 @@ class SecureChatServer:
                 if username in self.user_sessions:
                     del self.user_sessions[username]
                 
-                # Notify other users
-                leave_message = Message(
-                    sender="🔒 SecureSystem",
-                    content=f"{username} left the secure chat",
-                    msg_type="system"
-                )
-                self.message_queue.put(leave_message)
-                self.chat_history.add_message(leave_message)
-            
-            # Clean up client IP tracking
-            if client_socket in self.client_ips:
-                del self.client_ips[client_socket]
+                # Clean up client encryption tracking
+                if client_socket in self.client_encryption_types:
+                    del self.client_encryption_types[client_socket]
+                if client_socket in self.client_ips:
+                    del self.client_ips[client_socket]
             
             client_socket.close()
             
@@ -276,7 +287,7 @@ class SecureChatServer:
                         "type": "error",
                         "content": f"⚠️ {processed_content}"
                     }
-                    self._send_secure_message(client_socket, warning_msg)
+                    self._send_message_to_client(client_socket, warning_msg)
                     return
                 
                 message = Message(sender=username, content=processed_content, msg_type="text")
@@ -297,7 +308,7 @@ class SecureChatServer:
                         "type": "error",
                         "content": f"🚫 File rejected: {validation_message}"
                     }
-                    self._send_secure_message(client_socket, error_msg)
+                    self._send_message_to_client(client_socket, error_msg)
                     return
                 
                 try:
@@ -314,7 +325,7 @@ class SecureChatServer:
                         "type": "error",
                         "content": f"🚫 Secure file sharing failed: {str(e)}"
                     }
-                    self._send_secure_message(client_socket, error_msg)
+                    self._send_message_to_client(client_socket, error_msg)
                     return
             else:
                 return
@@ -357,21 +368,33 @@ class SecureChatServer:
                 user_socket = self.user_manager.get_user_socket(username)
                 if user_socket:
                     try:
-                        self._send_secure_message(user_socket, message_data)
+                        self._send_message_to_client(user_socket, message_data)
                     except:
                         # User disconnected, will be cleaned up
                         pass
     
-    def _send_secure_message(self, client_socket, data):
+    def _send_message_to_client(self, client_socket, data):
+        """Send message to client using appropriate encryption"""
+        encryption_type = self.client_encryption_types.get(client_socket, "hybrid")
+        use_basic = (encryption_type == "basic")
+        self._send_secure_message(client_socket, data, use_basic_encryption=use_basic)
+    
+    def _send_secure_message(self, client_socket, data, use_basic_encryption=False):
         """Send encrypted message to client"""
         try:
             json_data = json.dumps(data)
             
-            # Use hybrid encryption for enhanced security
-            encrypted_data = self.security_manager.hybrid_crypto.encrypt_message(json_data)
-            
-            # Send as JSON string
-            client_socket.send(json.dumps(encrypted_data).encode())
+            if use_basic_encryption:
+                # Use Fernet encryption for standard clients
+                from chat_core import SecurityManager
+                basic_security = SecurityManager()
+                encrypted_data = basic_security.encrypt_message(json_data)
+                client_socket.send(encrypted_data.encode())
+            else:
+                # Use hybrid encryption for enhanced security
+                encrypted_data = self.security_manager.hybrid_crypto.encrypt_message(json_data)
+                # Send as JSON string
+                client_socket.send(json.dumps(encrypted_data).encode())
             
         except Exception as e:
             print(f"Error sending secure message: {e}")
@@ -393,7 +416,7 @@ class SecureChatServer:
                 "type": "kicked",
                 "content": "🚫 You have been kicked from the secure server."
             }
-            self._send_secure_message(user_socket, kick_msg)
+            self._send_message_to_client(user_socket, kick_msg)
             user_socket.close()
             self.user_manager.remove_user(username)
             
@@ -433,7 +456,7 @@ class SecureChatServer:
             user_socket = self.user_manager.get_user_socket(username)
             if user_socket:
                 try:
-                    self._send_secure_message(user_socket, shutdown_msg)
+                    self._send_message_to_client(user_socket, shutdown_msg)
                     user_socket.close()
                 except:
                     pass

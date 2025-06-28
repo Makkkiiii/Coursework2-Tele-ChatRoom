@@ -85,15 +85,30 @@ class ChatClient:
                     break
                 
                 # Decrypt message
-                encrypted_data = data.decode()
-                decrypted_data = self.security_manager.decrypt_message(encrypted_data)
-                message_data = json.loads(decrypted_data)
+                encrypted_data = data.decode().strip()
                 
-                # Handle message based on type
-                msg_type = message_data.get("type", "")
-                handler = self.message_handlers.get(msg_type)
-                if handler:
-                    handler(message_data)
+                # Skip empty messages
+                if not encrypted_data:
+                    continue
+                
+                try:
+                    # Try to decrypt as Fernet-encrypted data
+                    decrypted_data = self.security_manager.decrypt_message(encrypted_data)
+                    message_data = json.loads(decrypted_data)
+                    
+                    # Handle message based on type
+                    msg_type = message_data.get("type", "")
+                    handler = self.message_handlers.get(msg_type)
+                    if handler:
+                        handler(message_data)
+                    else:
+                        print(f"Unknown message type: {msg_type}")
+                        
+                except Exception as e:
+                    print(f"Message decryption/parsing failed: {e}")
+                    print(f"Raw data received: {encrypted_data[:100]}...")
+                    # Try to continue processing other messages
+                    continue
                 
             except socket.error:
                 break
