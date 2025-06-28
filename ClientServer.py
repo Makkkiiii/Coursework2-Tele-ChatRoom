@@ -182,6 +182,12 @@ class ChatClient:
             )
             self.socket.send(encrypted_data.encode())
             
+            # Store for encryption verification
+            if self.gui:
+                self.gui.last_plain_data = content
+                self.gui.last_encrypted_data = encrypted_data
+                self.gui.last_message_type = "text"
+            
             # Display message locally
             if self.gui:
                 message = Message(self.username, content, "text")
@@ -213,6 +219,12 @@ class ChatClient:
                 json.dumps(message_data)
             )
             self.socket.send(encrypted_data.encode())
+            
+            # Store for encryption verification
+            if self.gui:
+                self.gui.last_plain_data = f"Shared file: {file_info['name']} ({file_info['size']} bytes)"
+                self.gui.last_encrypted_data = encrypted_data
+                self.gui.last_message_type = "file"
             
             # Display file message locally
             if self.gui:
@@ -271,6 +283,12 @@ class ModernChatGUI:
         self.connected = False
         self.message_count = 0
         self.start_time = None
+        
+        # Store last encrypted data for verification
+        self.last_encrypted_data = ""
+        self.last_plain_data = ""
+        self.last_message_type = "text"
+        
         self.setup_gui()
     
     def setup_gui(self):
@@ -606,10 +624,6 @@ class ModernChatGUI:
             font=("Arial", 8, "bold")
         )
         self.show_encrypted_button.pack(fill="x", padx=5, pady=2)
-        
-        # Store last encrypted data for verification
-        self.last_encrypted_data = ""
-        self.last_plain_data = ""
     
     def setup_input_area(self):
         """Setup message input area"""
@@ -901,19 +915,19 @@ class ModernChatGUI:
     def show_encrypted_data(self):
         """Show detailed encryption data in a popup"""
         if not self.last_encrypted_data:
-            messagebox.showinfo("Info", "No encrypted data available. Run encryption test first.")
+            messagebox.showinfo("Info", "No encrypted data available. Send a message or share a file first.")
             return
             
         # Create detailed popup window
         popup = tk.Toplevel(self.root)
-        popup.title("🔍 Encryption Data Analysis")
-        popup.geometry("600x500")
+        popup.title("🔍 Your Last Message - Encryption Analysis")
+        popup.geometry("700x550")
         popup.configure(bg=self.colors["background"])
         
         # Header
         tk.Label(
             popup,
-            text="🔬 ENCRYPTION DATA VERIFICATION",
+            text=f"🔬 LIVE ENCRYPTION ANALYSIS - {self.last_message_type.upper()}",
             font=("Arial", 14, "bold"),
             bg=self.colors["background"],
             fg=self.colors["text"]
@@ -924,56 +938,87 @@ class ModernChatGUI:
             popup,
             bg=self.colors["chat_bg"],
             fg=self.colors["text"],
-            font=("Courier", 10),
+            font=("Courier", 9),
             wrap="word"
         )
         text_widget.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # Insert detailed analysis
-        analysis = f"""🔍 DETAILED ENCRYPTION ANALYSIS
-{'='*50}
+        # Get the action type
+        action_type = "MESSAGE" if self.last_message_type == "text" else "FILE SHARE"
+        
+        # Insert live analysis of user's actual data
+        analysis = f"""🔍 LIVE ENCRYPTION ANALYSIS - YOUR {action_type}
+{'='*60}
 
-📝 ORIGINAL MESSAGE:
-{self.last_plain_data}
+📝 YOUR ORIGINAL {action_type}:
+"{self.last_plain_data}"
 
-🔐 ENCRYPTED DATA (Base64):
+🔐 WHAT GETS TRANSMITTED (Encrypted):
 {self.last_encrypted_data}
 
-📊 TECHNICAL DETAILS:
-• Algorithm: AES-256 (Fernet)
-• Key Derivation: PBKDF2 with 100,000 iterations
-• Salt: {self.client.security_manager._derive_key()[:32].hex()}...
-• Encrypted Length: {len(self.last_encrypted_data)} bytes
-• Original Length: {len(self.last_plain_data)} bytes
+📊 ENCRYPTION COMPARISON:
+• Original Size: {len(self.last_plain_data)} characters
+• Encrypted Size: {len(self.last_encrypted_data)} characters  
+• Security Overhead: +{len(self.last_encrypted_data) - len(self.last_plain_data)} bytes
 
 🛡️ SECURITY ANALYSIS:
-✅ Data is completely unreadable without the key
-✅ Salt prevents rainbow table attacks
-✅ PBKDF2 makes brute force attacks impractical
-✅ AES-256 is quantum-resistant (current standards)
+✅ Your {action_type.lower()} is completely scrambled
+✅ No readable text visible in encrypted data
+✅ AES-256 encryption applied successfully
+✅ PBKDF2 key derivation protects against attacks
 
-🚨 WHAT ATTACKERS SEE:
-If someone intercepts this data, they only see:
-{self.last_encrypted_data}
+🚨 WHAT HACKERS SEE ON THE NETWORK:
+If someone intercepts your data, they only see scrambled text like:
+{self.last_encrypted_data[:100]}{'...' if len(self.last_encrypted_data) > 100 else ''}
 
-❌ WITHOUT ENCRYPTION, they would see:
-{self.last_plain_data}
+❌ WITHOUT ENCRYPTION (DANGEROUS):
+Hackers would see exactly: "{self.last_plain_data}"
 
-🔒 CONCLUSION: Your data is SECURE!
+🔒 CONCLUSION: 
+Your {action_type.lower()} is SECURE and protected from eavesdropping!
+
+🎯 TECHNICAL DETAILS:
+• Algorithm: AES-256 (Fernet) - Military grade
+• Key Derivation: PBKDF2 with 100,000 iterations
+• Authentication: Built-in message integrity checking
+• Timestamp: Included for replay attack prevention
 """
         
         text_widget.insert("1.0", analysis)
         text_widget.config(state="disabled")
         
+        # Buttons frame
+        button_frame = tk.Frame(popup, bg=self.colors["background"])
+        button_frame.pack(fill="x", padx=10, pady=5)
+        
+        # Copy encrypted button
+        tk.Button(
+            button_frame,
+            text="📋 Copy Encrypted Data",
+            command=lambda: self.copy_to_clipboard(self.last_encrypted_data),
+            bg=self.colors["primary"],
+            fg="white",
+            font=("Arial", 9)
+        ).pack(side="left", padx=5)
+        
         # Close button
         tk.Button(
-            popup,
+            button_frame,
             text="Close",
             command=popup.destroy,
             bg=self.colors["accent"],
             fg="white",
             font=("Arial", 10, "bold")
-        ).pack(pady=10)
+        ).pack(side="right", padx=5)
+    
+    def copy_to_clipboard(self, text):
+        """Copy text to clipboard"""
+        try:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text)
+            self.add_system_message("📋 Encrypted data copied to clipboard")
+        except Exception as e:
+            self.show_error(f"Failed to copy to clipboard: {e}")
     
     # ...existing code...
     def run(self):

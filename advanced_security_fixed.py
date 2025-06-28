@@ -418,7 +418,7 @@ class AdvancedSecurityManager:
     """Main security manager that coordinates all security components"""
     
     def __init__(self, config: Optional[Dict] = None):
-        self.config = config or SECURITY_CONFIG
+        self.config = config or SECURITY_CONFIG.copy()
         
         # Initialize security components
         self.audit_logger = SecurityAuditLogger()
@@ -432,6 +432,76 @@ class AdvancedSecurityManager:
         )
         self.hybrid_crypto = HybridCrypto()
         self.digital_signature = DigitalSignature()
+        
+        # Security metrics tracking
+        self.metrics = {
+            "failed_logins": 0,
+            "successful_logins": 0,
+            "blocked_attempts": 0,
+            "malicious_requests": 0,
+            "file_uploads": 0,
+            "file_downloads": 0,
+            "messages_encrypted": 0,
+            "messages_decrypted": 0,
+            "security_violations": 0,
+            "total_connections": 0,
+            "active_threats": 0,
+            "last_attack_time": None,
+            "system_uptime": datetime.now()
+        }
+        
+        # Security event counters
+        self.event_counters = {
+            "login_attempts": 0,
+            "rate_limit_hits": 0,
+            "input_validation_failures": 0,
+            "session_timeouts": 0,
+            "encryption_operations": 0,
+            "signature_verifications": 0
+        }
+        
+        self.audit_logger.log_security_event(
+            "SECURITY_MANAGER_INITIALIZED", "system", 
+            "Security manager started with all components", "INFO"
+        )
+    
+    def increment_metric(self, metric_name: str, increment: int = 1):
+        """Safely increment a security metric"""
+        if metric_name in self.metrics:
+            self.metrics[metric_name] += increment
+            
+    def increment_event_counter(self, event_name: str, increment: int = 1):
+        """Safely increment an event counter"""
+        if event_name in self.event_counters:
+            self.event_counters[event_name] += increment
+            
+    def record_security_violation(self, violation_type: str, details: str):
+        """Record a security violation"""
+        self.increment_metric("security_violations")
+        self.metrics["last_attack_time"] = datetime.now()
+        self.audit_logger.log_security_event(
+            f"SECURITY_VIOLATION_{violation_type}", "system", details, "WARNING"
+        )
+        
+    def record_successful_login(self, username: str):
+        """Record a successful login"""
+        self.increment_metric("successful_logins")
+        self.increment_event_counter("login_attempts")
+        
+    def record_failed_login(self, username: str):
+        """Record a failed login attempt"""
+        self.increment_metric("failed_logins")
+        self.increment_event_counter("login_attempts")
+        
+    def record_encryption_operation(self):
+        """Record an encryption operation"""
+        self.increment_metric("messages_encrypted")
+        self.increment_event_counter("encryption_operations")
+        
+    def record_decryption_operation(self):
+        """Record a decryption operation"""
+        self.increment_metric("messages_decrypted")
+        self.increment_event_counter("encryption_operations")
     
     def authenticate_user(self, username: str, ip_address: str) -> Tuple[bool, str, Optional[str]]:
         """Comprehensive user authentication with security checks"""
@@ -458,6 +528,10 @@ class AdvancedSecurityManager:
         self.audit_logger.log_security_event(
             "USER_AUTHENTICATED", username, f"IP: {ip_address}, Session: {session_id[:8]}...", "INFO"
         )
+        
+        # Update metrics
+        self.metrics["successful_logins"] += 1
+        self.metrics["total_connections"] += 1
         
         return True, "Authentication successful", session_id
     
@@ -488,6 +562,9 @@ class AdvancedSecurityManager:
             "MESSAGE_PROCESSED", sender, f"Length: {len(message)}", "INFO"
         )
         
+        # Update metrics
+        self.metrics["messages_encrypted"] += 1
+        
         return True, processed_message
     
     def secure_file_processing(self, filename: str, file_size: int, sender: str) -> Tuple[bool, str]:
@@ -513,6 +590,9 @@ class AdvancedSecurityManager:
         self.audit_logger.log_security_event(
             "FILE_PROCESSED", sender, f"File: {filename}, Size: {file_size}", "INFO"
         )
+        
+        # Update metrics
+        self.metrics["file_uploads"] += 1
         
         return True, "File validation successful"
     
@@ -550,7 +630,10 @@ class AdvancedSecurityManager:
                     "rsa_key_size": 2048,
                     "aes_key_size": 256,
                     "signature_algorithm": "RSA-PSS with SHA-256"
-                }
+                },
+                "metrics": self.metrics,
+                "event_counters": self.event_counters,
+                "uptime_seconds": (datetime.now() - self.metrics["system_uptime"]).total_seconds()
             }
             
             # Log the report generation

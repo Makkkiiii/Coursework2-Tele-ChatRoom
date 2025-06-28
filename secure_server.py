@@ -443,11 +443,20 @@ class SecureChatServer:
             print("❌ Cannot kick: Empty username")
             return False
             
+        # Debug: Show current users
+        available_users = self.user_manager.get_users()
+        print(f"🔍 Debug - Current users: {available_users}")
+        print(f"🔍 Debug - Trying to kick: '{username}'")
+        
+        # Check if user exists
+        if not self.user_manager.user_exists(username):
+            print(f"❌ Cannot kick {username}: User not found in user manager")
+            print(f"Available users: {available_users}")
+            return False
+            
         user_socket = self.user_manager.get_user_socket(username)
         if not user_socket:
-            print(f"❌ Cannot kick {username}: User not found or already disconnected")
-            available_users = self.user_manager.get_users()
-            print(f"Available users: {available_users}")
+            print(f"❌ Cannot kick {username}: User socket not found")
             return False
             
         try:
@@ -460,7 +469,13 @@ class SecureChatServer:
                 "type": "kicked",
                 "content": "🚫 You have been kicked from the secure server."
             }
+            
+            # Send kick message
             self._send_message_to_client(user_socket, kick_msg)
+            
+            # Give a moment for the message to be sent
+            import time
+            time.sleep(0.1)
             
             # Clean up user data
             if user_socket in self.client_encryption_types:
@@ -468,7 +483,13 @@ class SecureChatServer:
             if user_socket in self.client_ips:
                 del self.client_ips[user_socket]
                 
-            user_socket.close()
+            # Close socket connection
+            try:
+                user_socket.close()
+            except:
+                pass
+                
+            # Remove from user manager
             self.user_manager.remove_user(username)
             
             # Invalidate session
@@ -484,11 +505,15 @@ class SecureChatServer:
                 msg_type="system"
             )
             self.message_queue.put(kick_message)
+            
             print(f"✅ Successfully kicked user: {username}")
+            print(f"🔍 Users after kick: {self.user_manager.get_users()}")
             return True
             
         except Exception as e:
             print(f"❌ Error kicking user {username}: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def stop_server(self):
@@ -799,13 +824,21 @@ class SecureServerGUI:
         """Kick selected user securely"""
         selection = self.users_listbox.curselection()
         if selection and self.server:
-            username = self.users_listbox.get(selection[0])
+            # Get the display text and extract username
+            display_text = self.users_listbox.get(selection[0])
+            # Remove the 🔐 prefix if present
+            username = display_text.replace("🔐 ", "")
+            
+            print(f"🔍 Debug - Display text: '{display_text}', Extracted username: '{username}'")
+            
             if self.server.kick_user_secure(username):
                 self.add_server_message(f"🚫 Kicked user: {username}")
                 self.add_security_event(f"User {username} kicked by admin", "WARNING")
                 self.update_server_info()
             else:
-                messagebox.showwarning("Warning", "Failed to kick user")
+                messagebox.showwarning("Warning", f"Failed to kick user: {username}")
+        else:
+            messagebox.showinfo("Info", "Please select a user to kick")
     
     def update_server_info(self):
         """Update server information display"""
@@ -854,19 +887,66 @@ Basic Clients (Fernet): {basic_clients}
         if self.server and self.server.running:
             try:
                 report = self.server.get_security_report()
-                metrics = report['metrics']
                 
                 self.metrics_text.config(state="normal")
                 self.metrics_text.delete(1.0, tk.END)
                 
+                # Get metrics data
+                metrics = report.get('metrics', {})
+                rate_info = report.get('rate_limit_status', {})
+                blocked_ips = rate_info.get('currently_blocked_ips', [])
+                tracked_ips = rate_info.get('total_tracked_ips', 0)
+                
+                # Get security components status
+                components = report.get('security_components', {})
+                active_components = sum(1 for status in components.values() if status == 'operational')
+                
+                # Get uptime
+                uptime_seconds = report.get('uptime_seconds', 0)
+                uptime_str = f"{int(uptime_seconds // 3600)}h {int((uptime_seconds % 3600) // 60)}m"
+                
                 metrics_display = f"""🔒 SECURITY METRICS
-Failed Logins: {metrics.get('failed_logins', 0)}
-Blocked IPs: {metrics.get('blocked_ips', 0)}
-Malicious Attempts: {metrics.get('malicious_attempts', 0)}
-Successful Logins: {metrics.get('successful_logins', 0)}
 Active Sessions: {report.get('active_sessions', 0)}
-Security Level: {report.get('security_level', 'HIGH')}
+Total Connections: {metrics.get('total_connections', 0)}
+Successful Logins: {metrics.get('successful_logins', 0)}
+Failed Logins: {metrics.get('failed_logins', 0)}
+Blocked Attempts: {metrics.get('blocked_attempts', 0)}
+Security Violations: {metrics.get('security_violations', 0)}
+
+� ENCRYPTION STATS:
+Messages Encrypted: {metrics.get('messages_encrypted', 0)}
+Messages Decrypted: {metrics.get('messages_decrypted', 0)}
+File Uploads: {metrics.get('file_uploads', 0)}
+File Downloads: {metrics.get('file_downloads', 0)}
+
+🌐 NETWORK SECURITY:
+Tracked IPs: {tracked_ips}
+Currently Blocked: {len(blocked_ips)}
+Active Threats: {metrics.get('active_threats', 0)}
+
+🛡️ SYSTEM STATUS:
+Security Level: {report.get('system_status', 'unknown').upper()}
+Components: {active_components}/{len(components)} operational
+Uptime: {uptime_str}
 Last Updated: {datetime.now().strftime('%H:%M:%S')}"""
+                
+                if blocked_ips:
+                    metrics_display += f"\n\n🚫 BLOCKED IPs:\n" + "\n".join(f"• {ip}" for ip in blocked_ips[:3])
+                    if len(blocked_ips) > 3:
+                        metrics_display += f"\n... and {len(blocked_ips) - 3} more"
+                
+                # Add last attack info if available
+                last_attack = metrics.get('last_attack_time')
+                if last_attack:
+                    try:
+                        if isinstance(last_attack, str):
+                            attack_time = datetime.fromisoformat(last_attack.replace('Z', '+00:00'))
+                        else:
+                            attack_time = last_attack
+                        time_since = datetime.now() - attack_time.replace(tzinfo=None)
+                        metrics_display += f"\n\n⚠️ Last Attack: {int(time_since.total_seconds() // 60)}m ago"
+                    except:
+                        pass
                 
                 self.metrics_text.insert(1.0, metrics_display)
                 self.metrics_text.config(state="disabled")
@@ -876,6 +956,14 @@ Last Updated: {datetime.now().strftime('%H:%M:%S')}"""
                 
             except Exception as e:
                 print(f"Error updating security metrics: {e}")
+                # Show error in GUI
+                try:
+                    self.metrics_text.config(state="normal")
+                    self.metrics_text.delete(1.0, tk.END)
+                    self.metrics_text.insert(1.0, f"❌ Error loading metrics:\n{str(e)}")
+                    self.metrics_text.config(state="disabled")
+                except:
+                    pass
     
     def add_security_event(self, event, level="INFO"):
         """Add security event to log"""
