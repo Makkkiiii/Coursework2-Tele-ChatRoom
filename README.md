@@ -157,53 +157,6 @@ python demo_usage.py
 
 ## 🏗️ Architecture
 
-### Core Components
-
-#### 1. Security Manager (`SecurityManager`)
-
-```python
-# Handles encryption/decryption
-security_manager = SecurityManager("password")
-encrypted = security_manager.encrypt_message("Hello World")
-decrypted = security_manager.decrypt_message(encrypted)
-```
-
-#### 2. Message System (`Message`, `MessageQueue`)
-
-```python
-# Message creation and queuing
-message = Message("user", "content", "text", file_data)
-queue = MessageQueue()
-queue.put(message)
-```
-
-#### 3. User Management (`UserManager`)
-
-```python
-# Thread-safe user operations
-user_manager = UserManager()
-user_manager.add_user("username", socket)
-users = user_manager.get_users()
-```
-
-#### 4. File Operations (`FileManager`)
-
-```python
-# File encoding/decoding
-file_manager = FileManager("directory")
-file_info = file_manager.encode_file("path/to/file")
-saved_path = file_manager.decode_file(file_info)
-```
-
-#### 5. Chat History (`ChatHistory`)
-
-```python
-# Message storage and search
-history = ChatHistory(max_messages=1000)
-history.add_message(message)
-results = history.search_messages("query")
-```
-
 ### Network Protocol
 
 #### Message Format
@@ -304,25 +257,8 @@ python demo_usage.py
 5. **Connection Limits**: Prevents server overload
 6. **Error Handling**: Graceful handling of malformed data
 
-## 🎨 GUI Features
-
-### Modern Design
-
-- **Dark Theme**: Professional dark color scheme
-- **Color-coded Messages**: Different colors for user types
-- **Real-time Updates**: Live user list and message display
-- **Responsive Layout**: Adapts to different screen sizes
-
-### User Experience
-
-- **Intuitive Controls**: Easy-to-use interface
-- **Status Indicators**: Connection status and user count
-- **File Integration**: Drag-and-drop file sharing
-- **Keyboard Shortcuts**: Enter to send messages
-
 ## 🛡️ Error Handling
 
-- **Connection Failures**: Automatic reconnection attempts
 - **Invalid Messages**: Graceful error display
 - **File Errors**: Size/type validation with user feedback
 - **Encryption Errors**: Fallback to plain text with warnings
@@ -472,23 +408,6 @@ python demo_usage.py         # Usage demo
    python Main_Test.py
    ```
 
-### For Developers
-
-1. **🔧 Core Components:**
-
-   - Explore `Custom Module/chat_core.py`
-   - Review `Custom Module/advanced_security_fixed.py`
-
-2. **🧪 Testing:**
-
-   - Run tests from `Tests/` folder
-   - Check `Tests/Main_Test.py` for comprehensive testing
-   - Use `Tests/debug_client.py` for debugging
-
-3. **📖 Documentation:**
-   - Read all files in `Read/` folder
-   - Check inline code comments
-
 ## 🚀 Advanced Usage
 
 ### Multiple Clients
@@ -541,51 +460,9 @@ python demo_usage.py         # Usage demo
 - Check system resources
 - Update Python dependencies
 
-## 🔮 Future Enhancements
-
-- [ ] Voice/Video calling integration
-- [ ] Database persistence for chat history
-- [ ] User authentication system
-- [ ] Private messaging between users
-- [ ] Emoji and sticker support
-- [ ] Mobile app development
-- [ ] Web-based client interface
-- [ ] Advanced file preview
-- [ ] Message reactions and replies
-- [ ] Group chat rooms
-
-## 👥 Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Make changes with tests
-4. Submit pull request
-5. Follow code style guidelines
-
 ## 📜 License
 
 This project is created for educational purposes as part of Programming & Algorithm 2 coursework. Feel free to use and modify for learning purposes.
-
-## 🎓 Educational Value
-
-### Programming Concepts Demonstrated
-
-- **Object-Oriented Programming**: Classes, inheritance, encapsulation
-- **Data Structures**: Queues, dictionaries, lists, search algorithms
-- **Algorithms**: Encryption, file encoding, message routing
-- **Concurrency**: Threading, thread-safe operations
-- **Network Programming**: TCP sockets, client-server architecture
-- **GUI Development**: Event-driven programming, user interface design
-- **Software Engineering**: Modular design, error handling, testing
-
-### Skills Developed
-
-- **Python Programming**: Advanced Python concepts and best practices
-- **Network Security**: Encryption implementation and secure communication
-- **Software Architecture**: Design patterns and system organization
-- **User Interface Design**: Creating intuitive and responsive GUIs
-- **Testing**: Unit testing and quality assurance
-- **Documentation**: Technical writing and code documentation
 
 ---
 
@@ -633,13 +510,8 @@ chmod +x client.py
 ### 3. Launching the program:
 
 ```
-./server.py
-./client.py
-
-OR
-
-python3 server.py
-python3 client.py
+python3 secure_server.py
+python3 ClientServer.py
 ```
 
 ## 3. FOR MAC
@@ -668,53 +540,7 @@ This program was written in Python using Visual Studio Code.
 
 https://github.com/user-attachments/assets/bf76838a-9796-4662-b53d-09a767bfef97
 
-## 🔒 How to Verify Encryption is Working
-
-### Quick Command-Line Test
-
-```bash
-cd Tests
-python verify_encryption.py
-```
-
-This runs automated tests to verify:
-
-- Messages are properly encrypted/decrypted
-- Original text is not visible in encrypted data
-- Network interception simulation
-- Professor-friendly demonstration
-
-### GUI Encryption Tester
-
-```bash
-cd Tests
-python encryption_tester.py
-```
-
-Advanced GUI tool with multiple verification methods:
-
-- **🧪 Basic Test**: Simple encrypt/decrypt verification
-- **⚡ Before/After**: Side-by-side comparison of original vs encrypted
-- **🌐 Network Test**: Shows what encrypted network traffic looks like
-- **🔬 Forensic Analysis**: Entropy analysis, frequency analysis, pattern detection
-
-### In-App Testing
-
-1. Start the client (`cd Main && python ClientServer.py`)
-2. Click "🔬 Test Encryption" button
-3. View real-time encryption/decryption demonstration
-4. Check security status indicators
-
-### Quick Professor Demo
-
-```bash
-cd Tests
-python prove_encryption.py
-```
-
-30-second demonstration perfect for showing professors that encryption actually works.
-
-### What Professors Will See
+### What to expect See
 
 - **Encrypted data**: Completely unreadable scrambled text
 - **Original data**: Readable after decryption with correct key
