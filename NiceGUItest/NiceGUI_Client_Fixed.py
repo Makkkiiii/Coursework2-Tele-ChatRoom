@@ -111,19 +111,27 @@ class ChatClient:
         
         self.connected = False
         if self.gui:
-            self.gui.on_disconnected()
+            # Use ui.timer to safely update UI from background thread
+            ui.timer(0.1, self.gui.on_disconnected, once=True)
     
     def _handle_server_message(self, data):
         """Handle server messages"""
         if self.gui:
-            self.gui.add_message("🔒 SERVER", data["content"], "system")
+            # Use ui.timer to safely update UI from background thread
+            ui.timer(0.1, lambda: self.gui.add_message("🔒 SERVER", data["content"], "system"), once=True) # type: ignore
     
     def _handle_login_success(self, data):
         """Handle successful login"""
+        print(f"DEBUG: Login success received: {data}")  # Debug print
         if self.gui:
-            self.gui.add_message("🔒 SERVER", data["content"], "system")
-            self.gui.update_user_list(data.get("users", []))
-            self.gui.on_connected()
+            # Use ui.timer to safely update UI from background thread
+            def update_on_login():
+                self.gui.add_message("🔒 SERVER", data["content"], "system") # type: ignore
+                users = data.get("users", [])
+                print(f"DEBUG: Users from login_success: {users}")  # Debug print
+                self.gui.update_user_list(users) # type: ignore
+                self.gui.on_connected() # type: ignore
+            ui.timer(0.1, update_on_login, once=True)
     
     def _handle_message(self, data):
         """Handle chat messages"""
@@ -131,30 +139,40 @@ class ChatClient:
         message = Message.from_dict(message_data)
         
         if self.gui:
-            self.gui.display_message(message)
+            # Use ui.timer to safely update UI from background thread
+            ui.timer(0.1, lambda: self.gui.display_message(message), once=True) # type: ignore
     
     def _handle_error(self, data):
         """Handle error messages"""
         if self.gui:
-            ui.notify(data["content"], type='negative')
-            self.gui.add_message("❌ ERROR", data["content"], "error")
+            # Use ui.timer to safely update UI from background thread
+            def show_error():
+                ui.notify(data["content"], type='negative')
+                self.gui.add_message("❌ ERROR", data["content"], "error") # type: ignore
+            ui.timer(0.1, show_error, once=True)
     
     def _handle_kicked(self, data):
         """Handle being kicked from server"""
         if self.gui:
-            ui.notify(data["content"], type='negative')
-            self.gui.add_message("🚫 SYSTEM", data["content"], "error")
-            # Force immediate disconnection
-            self.disconnect()
-            self.gui.on_disconnected()
+            # Use ui.timer to safely update UI from background thread
+            def handle_kick():
+                ui.notify(data["content"], type='negative')
+                self.gui.add_message("🚫 SYSTEM", data["content"], "error") # type: ignore
+                # Force immediate disconnection
+                self.disconnect()
+                self.gui.on_disconnected() # type: ignore
+            ui.timer(0.1, handle_kick, once=True)
     
     def _handle_server_shutdown(self, data):
         """Handle server shutdown"""
         if self.gui:
-            self.gui.add_message("🔒 SERVER", data["content"], "system")
-            # Force immediate disconnection
-            self.disconnect()
-            self.gui.on_disconnected()
+            # Use ui.timer to safely update UI from background thread
+            def handle_shutdown():
+                self.gui.add_message("🔒 SERVER", data["content"], "system") # type: ignore
+                # Force immediate disconnection
+                self.disconnect()
+                self.gui.on_disconnected() # type: ignore
+            ui.timer(0.1, handle_shutdown, once=True)
     
     def send_message(self, content):
         """Send text message to server"""
@@ -550,12 +568,18 @@ class CleanChatGUI:
             ui.notify("Port must be a number", type='warning')
             return
         
-        if self.client.connect_to_server(host, port, username):
-            self.status_indicator.text = "🟡 Connecting..."
-            self.status_indicator.classes(replace='status-disconnected status-connecting')
-        else:
+        # Update status to connecting
+        self.status_indicator.text = "🟡 Connecting..."
+        self.status_indicator.classes(replace='status-disconnected status-connecting')
+        
+        # Attempt connection
+        success = self.client.connect_to_server(host, port, username)
+        
+        if not success:
+            # Connection failed, update status
             self.status_indicator.text = "🔴 Failed"
             self.status_indicator.classes(replace='status-connecting status-disconnected')
+            ui.notify("Connection failed! Check server and try again.", type='negative')
     
     def disconnect(self):
         """Disconnect from server"""
@@ -576,9 +600,9 @@ class CleanChatGUI:
         self.share_button.enable()
         
         # Update status
-        self.status_label.text = "� Connected & Secured" # type: ignore
+        self.status_indicator.text = "🟢 Connected"
+        self.status_indicator.classes(replace='status-disconnected status-connecting status-connected')
         self.security_label.text = "🔒 Security: ENCRYPTED"
-        self.connection_info.text = f"Connected to {self.client.host}:{self.client.port}" # type: ignore
         
         ui.notify("✅ Connected successfully! Welcome to secure chat.", type='positive')
         self.add_message("🔒 SYSTEM", "Secure connection established - All communications encrypted", "system")
@@ -767,6 +791,7 @@ class CleanChatGUI:
     
     def update_user_list(self, users):
         """Update online users list with modern styling"""
+        print(f"DEBUG: Updating user list with: {users}")  # Debug print
         self.users_list.clear()
         
         with self.users_list:
