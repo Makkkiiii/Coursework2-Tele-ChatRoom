@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Optional, TYPE_CHECKING
 from core import (
     Message, MessageQueue, UserManager, 
-    FileManager, ChatHistory
+    ChatHistory
 )
 from security import (
     AdvancedSecurityManager, SECURITY_CONFIG
@@ -36,7 +36,6 @@ class SecureChatServer:
         
         # Core components
         self.user_manager = UserManager()
-        self.file_manager = FileManager("server_files")
         self.chat_history = ChatHistory()
         self.message_queue = MessageQueue()
         
@@ -312,7 +311,7 @@ class SecureChatServer:
                 message = Message(sender=username, content=processed_content, msg_type="text")
                 
             elif msg_type == "file":
-                # Handle secure file sharing
+                # Handle file sharing (just relay to other clients, don't store)
                 file_data = message_data.get("file_data", {})
                 filename = file_data.get("name", "unknown")
                 file_size = file_data.get("size", 0)
@@ -334,26 +333,17 @@ class SecureChatServer:
                         self.gui.add_security_event(f"🚫 {username}: File {filename} REJECTED - {validation_message}", "WARNING")
                     return
                 
-                # Log successful file validation
+                # Log successful file validation (server just relays the file)
                 if self.gui:
-                    self.gui.add_security_event(f"📁 {username}: File {filename} ({file_size} bytes) validated", "INFO")
+                    self.gui.add_security_event(f"📁 {username}: File {filename} ({file_size} bytes) validated and relayed", "INFO")
                 
-                try:
-                    # Save file on server
-                    saved_path = self.file_manager.decode_file(file_data)
-                    message = Message(
-                        sender=username,
-                        content=f"📎 Shared secure file: {filename}",
-                        msg_type="file",
-                        file_data=file_data
-                    )
-                except Exception as e:
-                    error_msg = {
-                        "type": "error",
-                        "content": f"🚫 Secure file sharing failed: {str(e)}"
-                    }
-                    self._send_message_to_client(client_socket, error_msg)
-                    return
+                # Create message for relaying (don't save file on server)
+                message = Message(
+                    sender=username,
+                    content=f"📎 Shared file: {filename}",
+                    msg_type="file",
+                    file_data=file_data
+                )
             else:
                 return
             

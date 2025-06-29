@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run TeleChat Server",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"NiceGUItest/NiceGUI_Server_Fixed.py"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

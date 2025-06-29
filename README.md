@@ -154,6 +154,39 @@ python demo_usage.py
 - **Size Limit**: 10MB per file
 - **Auto-download**: Files are automatically saved to `received_files/` folder
 - **Security**: Files are encrypted during transmission
+- **Architecture**: Server acts as a relay only - files are not stored on the server
+
+### File Sharing Architecture
+
+The application uses a **relay-based file sharing model** for security and efficiency:
+
+#### How File Sharing Works
+
+1. **Client Side (Sender)**:
+
+   - User selects a file to share
+   - Client encodes file to base64 and encrypts
+   - File data is sent to server with metadata
+
+2. **Server Side (Relay)**:
+
+   - Server validates file size and type for security
+   - Server does NOT store the file locally
+   - Server immediately relays the file data to all other clients
+   - Only validation and relay - no persistent storage
+
+3. **Client Side (Receivers)**:
+   - Clients receive the file data from server
+   - Clients decode and save file to `received_files/` folder
+   - Each client manages their own file storage
+
+#### Benefits of Relay Architecture
+
+- **Privacy**: Server never stores user files
+- **Storage Efficiency**: Server doesn't need file storage space
+- **Security**: Reduces attack surface on server
+- **Scalability**: Server memory usage remains constant
+- **Simplicity**: No file cleanup or management needed on server
 
 ## 🏗️ Architecture
 
@@ -246,7 +279,7 @@ python demo_usage.py
 
 - **Max File Size**: 10MB
 - **Supported Types**: All file types
-- **Storage Location**: `received_files/` and `server_files/`
+- **Storage Location**: `received_files/` (client-side only)
 
 ## 🔒 Security Features
 
@@ -290,7 +323,6 @@ The project is organized into logical folders to make navigation easier:
 │
 │
 ├── 📁 received_files/              # 📥 Client downloaded files
-├── 📁 server_files/                # 📤 Server shared files
 ├── requirements.txt                # 📦 Python dependencies
 └── README.md                      # 📖 This documentation
 ```
@@ -311,7 +343,6 @@ The project is organized into logical folders to make navigation easier:
 
 1. First run `python Main_Server.py`
 2. Then run `python Main_Client.py` (can run multiple instances)
-
 
 #### 📁 `Tests/` - Verification & Testing
 
@@ -342,14 +373,13 @@ python demo_usage.py         # Usage demo
 
 **How to use:** Open these files to understand specific features in detail
 
-#### 📁 `received_files/` & `server_files/`
+#### 📁 `received_files/`
 
-**What they contain:** File storage for the chat application
+**What they contain:** File storage for client downloads
 
 - **`received_files/`** - Files downloaded by clients
-- **`server_files/`** - Files shared through the server
 
-**How to use:** These folders are automatically created and managed by the application
+**How to use:** This folder is automatically created and managed by the client application. The server acts as a relay and does not store files.
 
 ## 🎯 Getting Started Guide
 
