@@ -1,4 +1,4 @@
-tkinter
+PyQt5
 pillow
 cryptography
 threading
@@ -8,3 +8,4 @@ base64
 hashlib
 datetime
 os
+typing
