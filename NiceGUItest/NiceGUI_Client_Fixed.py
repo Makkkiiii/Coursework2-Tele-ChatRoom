@@ -46,7 +46,9 @@ class ChatClient:
         """Connect to the chat server"""
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(10)  # 10 second connection timeout
             self.socket.connect((host, port))
+            self.socket.settimeout(None)  # Remove timeout after connection
             
             self.host = host
             self.port = port
@@ -69,6 +71,9 @@ class ChatClient:
         except Exception as e:
             if self.gui:
                 ui.notify(f"Connection failed: {e}", type='negative')
+                # Update status to show connection failed
+                self.gui.status_indicator.text = "🔴 Failed"
+                self.gui.status_indicator.classes(replace='status-connecting status-disconnected')
             return False
     
     def _listen_for_messages(self):
@@ -138,13 +143,18 @@ class ChatClient:
         """Handle being kicked from server"""
         if self.gui:
             ui.notify(data["content"], type='negative')
-            self.gui.disconnect()
+            self.gui.add_message("🚫 SYSTEM", data["content"], "error")
+            # Force immediate disconnection
+            self.disconnect()
+            self.gui.on_disconnected()
     
     def _handle_server_shutdown(self, data):
         """Handle server shutdown"""
         if self.gui:
             self.gui.add_message("🔒 SERVER", data["content"], "system")
-            self.gui.disconnect()
+            # Force immediate disconnection
+            self.disconnect()
+            self.gui.on_disconnected()
     
     def send_message(self, content):
         """Send text message to server"""
@@ -541,11 +551,11 @@ class CleanChatGUI:
             return
         
         if self.client.connect_to_server(host, port, username):
-            self.status_label.text = "🟡 Connecting..." # type: ignore
-            self.connection_info.text = f"Connecting to {host}:{port}" # type: ignore
+            self.status_indicator.text = "🟡 Connecting..."
+            self.status_indicator.classes(replace='status-disconnected status-connecting')
         else:
-            self.status_label.text = "🔴 Connection Failed" # type: ignore
-            self.connection_info.text = "Connection attempt failed" # type: ignore
+            self.status_indicator.text = "🔴 Failed"
+            self.status_indicator.classes(replace='status-connecting status-disconnected')
     
     def disconnect(self):
         """Disconnect from server"""
@@ -587,9 +597,9 @@ class CleanChatGUI:
         self.share_button.disable()
         
         # Update status
-        self.status_label.text = "🔴 Disconnected" # type: ignore
+        self.status_indicator.text = "🔴 Offline"
+        self.status_indicator.classes(replace='status-connected status-connecting status-disconnected')
         self.security_label.text = "🔒 Security: Offline"
-        self.connection_info.text = "Not connected" # type: ignore
         
         ui.notify("Disconnected from server", type='info')
         self.add_message("🔒 SYSTEM", "Disconnected from server - Connection closed", "system")
@@ -608,7 +618,7 @@ class CleanChatGUI:
         if self.client.send_message(message):
             self.message_input.value = ""
             self.message_count += 1
-            self.message_counter.text = f"Messages: {self.message_count}"
+            self.message_counter.text = f"• {self.message_count} messages"
     
     def share_file(self):
         """Share a file using native dialog"""
@@ -691,34 +701,54 @@ class CleanChatGUI:
         """Clear chat messages"""
         self.messages_area.clear()
         self.message_count = 0
-        self.message_counter.text = "Messages: 0"
+        self.message_counter.text = "• 0 messages"
         ui.notify("Chat cleared", type='info')
     
     def add_message(self, sender, content, msg_type="normal"):
-        """Add message to chat with modern styling"""
+        """Add message to chat with modern Telegram-style bubbles"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        # Create message with styling based on type
+        # Create message with proper Telegram-style bubbles
         with self.messages_area:
-            with ui.row().classes('w-full gap-3 chat-message'):
-                # Message icon
-                if msg_type == "system":
-                    ui.icon('admin_panel_settings').classes('text-yellow-400 text-xl mt-1')
-                elif msg_type == "error":
-                    ui.icon('error').classes('text-red-400 text-xl mt-1')
-                elif msg_type == "sent":
-                    ui.icon('send').classes('text-blue-400 text-xl mt-1')
-                elif msg_type == "file":
-                    ui.icon('attach_file').classes('text-green-400 text-xl mt-1')
-                else:
-                    ui.icon('chat').classes('text-gray-400 text-xl mt-1')
-                
-                # Message content
-                with ui.column().classes('flex-1'):
-                    with ui.row().classes('items-center gap-2'):
-                        ui.label(sender).classes('font-bold text-sm')
-                        ui.label(f"• {timestamp}").classes('text-xs text-gray-500')
-                    ui.label(content).classes('text-sm leading-relaxed break-words')
+            if msg_type == "system":
+                # System messages centered
+                with ui.row().classes('w-full justify-center mb-2'):
+                    with ui.label(content).classes('message-bubble-system'):
+                        pass
+            else:
+                # Regular messages with proper alignment
+                with ui.row().classes('w-full mb-2'):
+                    if sender == "You" or msg_type == "sent":
+                        # Sent messages aligned right
+                        ui.space()  # Push to right
+                        with ui.column().classes('items-end'):
+                            with ui.row().classes('items-center gap-2 mb-1'):
+                                ui.label(timestamp).classes('text-xs text-gray-400')
+                                ui.label(sender).classes('text-xs text-gray-300 font-medium')
+                            with ui.label(content).classes('message-bubble-sent'):
+                                pass
+                    else:
+                        # Received messages aligned left
+                        with ui.column().classes('items-start'):
+                            with ui.row().classes('items-center gap-2 mb-1'):
+                                ui.label(sender).classes('text-xs text-gray-300 font-medium')
+                                ui.label(timestamp).classes('text-xs text-gray-400')
+                            with ui.label(content).classes('message-bubble-received'):
+                                pass
+                        ui.space()  # Push content to left
+        
+        # Auto-scroll to bottom
+        ui.run_javascript('''
+            setTimeout(() => { 
+                const scrollArea = document.querySelector(".messages-container");
+                if (scrollArea) {
+                    scrollArea.scrollTo({
+                        top: scrollArea.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 100);
+        ''')
     
     def display_message(self, message):
         """Display received message"""

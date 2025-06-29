@@ -679,6 +679,23 @@ SECURITY_CONFIG = {
 }
 
 
+# Security Configuration
+SECURITY_CONFIG = {
+    "max_requests": 30,
+    "rate_limit_window": 60,
+    "session_timeout": 3600,
+    "max_file_size": 10 * 1024 * 1024,  # 10MB
+    "allowed_file_types": [".txt", ".pdf", ".jpg", ".png", ".gif", ".zip"],
+    "max_message_length": 1000,
+    "max_username_length": 32,
+    "min_username_length": 3,
+    "enable_xss_protection": True,
+    "enable_rate_limiting": True,
+    "enable_session_validation": True,
+    "log_security_events": True
+}
+
+
 def test_security_components():
     """Test all security components"""
     print("🔐 TESTING ADVANCED SECURITY COMPONENTS")

@@ -179,9 +179,11 @@ class SecureChatServer:
             self.message_queue.put(join_message)
             self.chat_history.add_message(join_message)
             
-            # Update GUI
+            # Update GUI immediately after user joins
             if self.gui:
                 self.gui.update_server_info()
+                self.gui.update_displays()
+                self.gui.add_security_event(f"✅ User {username} connected from {client_ip}")
             
             # Listen for messages from this client
             while self.running:
@@ -209,7 +211,10 @@ class SecureChatServer:
             if username:
                 self.user_manager.remove_user(username)
                 if session_id:
-                    self.security_manager.session_manager.invalidate_session(session_id)
+                    try:
+                        self.security_manager.session_manager.invalidate_session(session_id)
+                    except:
+                        pass
                 if username in self.user_sessions:
                     del self.user_sessions[username]
                 
@@ -218,12 +223,26 @@ class SecureChatServer:
                     del self.client_encryption_types[client_socket]
                 if client_socket in self.client_ips:
                     del self.client_ips[client_socket]
+                
+                # Notify other users about disconnection
+                leave_message = Message(
+                    sender="🔒 SecureSystem",
+                    content=f"{username} left the secure chat",
+                    msg_type="system"
+                )
+                self.message_queue.put(leave_message)
+                self.chat_history.add_message(leave_message)
+                
+                # Update GUI immediately after user leaves
+                if self.gui:
+                    self.gui.update_server_info()
+                    self.gui.update_displays()
+                    self.gui.add_security_event(f"⚠️ User {username} disconnected")
             
-            client_socket.close()
-            
-            # Update GUI
-            if self.gui:
-                self.gui.update_server_info()
+            try:
+                client_socket.close()
+            except:
+                pass
     
     def _process_secure_client_message(self, username, data, session_id, client_socket):
         """Process client message with security validation"""
@@ -238,21 +257,38 @@ class SecureChatServer:
             content = message_data.get("content", "")
             
             if msg_type == "text":
-                # Validate and sanitize message
-                is_safe, processed_content = self.security_manager.secure_message_processing(
-                    content, username, session_id
-                )
-                
-                if not is_safe:
-                    # Send warning to user
-                    warning_msg = {
+                # Enhanced security validation and sanitization
+                try:
+                    is_safe, processed_content = self.security_manager.secure_message_processing(
+                        content, username, session_id
+                    )
+                    
+                    if not is_safe:
+                        # Send warning to user and log security violation
+                        warning_msg = {
+                            "type": "error",
+                            "content": f"⚠️ Security Violation: {processed_content}"
+                        }
+                        self._send_message_to_client(client_socket, warning_msg)
+                        
+                        # Log security event
+                        if self.gui:
+                            self.gui.add_security_event(f"🚨 Security violation by {username}: {processed_content}")
+                        return
+                    
+                    message = Message(sender=username, content=processed_content, msg_type="text")
+                    
+                except Exception as e:
+                    # Handle security processing errors
+                    error_msg = {
                         "type": "error",
-                        "content": f"⚠️ {processed_content}"
+                        "content": f"🚫 Message processing failed: Security validation error"
                     }
-                    self._send_message_to_client(client_socket, warning_msg)
+                    self._send_message_to_client(client_socket, error_msg)
+                    
+                    if self.gui:
+                        self.gui.add_security_event(f"❌ Security processing error for {username}: {str(e)}")
                     return
-                
-                message = Message(sender=username, content=processed_content, msg_type="text")
                 
             elif msg_type == "file":
                 # Handle file sharing
@@ -288,12 +324,18 @@ class SecureChatServer:
             self.message_queue.put(message)
             self.message_count += 1
             
-            # Update GUI
+            # Update GUI immediately
             if self.gui:
                 self.gui.update_message_display(message)
+                self.gui.update_displays()
             
         except Exception as e:
             print(f"Error processing secure message from {username}: {e}")
+            error_msg = {
+                "type": "error",
+                "content": f"🚫 Message processing failed: Server error"
+            }
+            self._send_message_to_client(client_socket, error_msg)
     
     def _process_messages(self):
         """Process messages from queue and broadcast securely"""
@@ -390,22 +432,20 @@ class SecureChatServer:
                 "content": "🚫 You have been kicked from the secure server."
             }
             
-            # Send kick message
+            # Send kick message with immediate forced disconnection
             self._send_message_to_client(user_socket, kick_msg)
             
-            # Clean up user data
+            # Force immediate disconnection
+            import time
+            time.sleep(0.1)  # Brief delay to ensure message is sent
+            
+            # Clean up user data BEFORE closing socket
             if user_socket in self.client_encryption_types:
                 del self.client_encryption_types[user_socket]
             if user_socket in self.client_ips:
                 del self.client_ips[user_socket]
-                
-            # Close socket connection
-            try:
-                user_socket.close()
-            except:
-                pass
-                
-            # Remove from user manager
+            
+            # Remove from user manager first
             self.user_manager.remove_user(username)
             
             # Invalidate session
@@ -416,6 +456,28 @@ class SecureChatServer:
                 except:
                     pass
                 del self.user_sessions[username]
+            
+            # Force close socket connection
+            try:
+                user_socket.shutdown(socket.SHUT_RDWR)
+                user_socket.close()
+            except:
+                pass
+            
+            # Notify other users
+            kick_notification = Message(
+                sender="🔒 SecureSystem",
+                content=f"{username} was kicked from the server",
+                msg_type="system"
+            )
+            self.message_queue.put(kick_notification)
+            self.chat_history.add_message(kick_notification)
+            
+            # Update GUI
+            if self.gui:
+                self.gui.update_server_info()
+                self.gui.update_displays()
+                self.gui.add_security_event(f"🚫 Kicked user: {username}")
             
             return True
             
@@ -747,8 +809,9 @@ class CleanServerGUI:
             ui.notify(f'Server started on {host}:{port}', type='positive')
             self.add_security_event(f"✅ Server started on {host}:{port}")
             
-            # Start periodic updates
-            ui.timer(3.0, self.update_displays)
+            # Start periodic updates with more frequent intervals
+            ui.timer(2.0, self.update_displays)
+            ui.timer(1.0, self.update_server_info)  # More frequent user list updates
             
         except Exception as e:
             ui.notify(f'Failed to start server: {e}', type='negative')
@@ -798,6 +861,7 @@ class CleanServerGUI:
                 self.server_status.classes(replace='status-offline status-online')
                 
                 uptime = datetime.now() - self.server.start_time if self.server.start_time else None
+                current_users = self.server.user_manager.get_users()
                 
                 # Server status section
                 with ui.card().classes('w-full enhanced-card p-3'):
@@ -824,7 +888,7 @@ class CleanServerGUI:
                         ui.icon('people').classes('text-cyan-400 text-lg')
                         with ui.column().classes('gap-0'):
                             ui.label("Connected Users").classes('text-gray-400 text-xs')
-                            ui.label(f"{len(self.server.user_manager.get_users())}").classes('text-white text-sm font-bold')
+                            ui.label(f"{len(current_users)}").classes('text-white text-sm font-bold')
                     
                     with ui.row().classes('metric-item items-center gap-3'):
                         ui.icon('message').classes('text-purple-400 text-lg')
@@ -851,10 +915,10 @@ class CleanServerGUI:
         
         # Enhanced users list
         with self.users_list:
-            if self.server:
-                users = self.server.user_manager.get_users()
-                if users:
-                    for i, user in enumerate(users):
+            if self.server and self.server.running:
+                current_users = self.server.user_manager.get_users()
+                if current_users:
+                    for i, user in enumerate(current_users):
                         with ui.row().classes('user-badge items-center gap-3 w-full'):
                             ui.icon('person').classes('text-green-500 text-lg')
                             with ui.column().classes('flex-1 gap-0'):
