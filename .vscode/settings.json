@@ -1,7 +1,8 @@
 {
     "python.analysis.extraPaths": [
         "./Custom Module",
-        "./Tests+Module"
+        "./Tests+Module",
+        "./Main"
     ],
     "python.testing.unittestArgs": [
         "-v",

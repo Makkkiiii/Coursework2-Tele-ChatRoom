@@ -1007,3 +1007,96 @@
 2025-06-29 19:26:00 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-29T19:26:00.585059", "severity": "INFO"}
 2025-06-29 19:26:00 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-29T19:26:00.614600", "severity": "INFO"}
 2025-06-29 19:26:00 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-29T19:26:00.651131", "severity": "INFO"}
+2025-06-29 20:15:53 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T20:15:53.203008", "severity": "INFO"}
+2025-06-29 20:30:33 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T20:30:33.245411", "severity": "INFO"}
+2025-06-29 20:30:39 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T20:30:39.420969", "severity": "INFO"}
+2025-06-29 20:38:06 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T20:38:06.571946", "severity": "INFO"}
+2025-06-29 20:38:26 - INFO - {"event_type": "CLIENT_CONNECT", "user": "teste", "details": "Connected to 127.0.0.1:12345", "timestamp": "2025-06-29T20:38:26.363776", "severity": "INFO"}
+2025-06-29 20:38:26 - INFO - {"event_type": "CLIENT_LOGIN_SUCCESS", "user": "teste", "details": "Security level: HIGH", "timestamp": "2025-06-29T20:38:26.532176", "severity": "INFO"}
+2025-06-29 20:38:31 - INFO - {"event_type": "MESSAGE_SENT", "user": "teste", "details": "Length: 2", "timestamp": "2025-06-29T20:38:31.162346", "severity": "INFO"}
+2025-06-29 20:38:50 - INFO - {"event_type": "MESSAGE_SENT", "user": "teste", "details": "Length: 9", "timestamp": "2025-06-29T20:38:50.610356", "severity": "INFO"}
+2025-06-29 20:39:00 - INFO - {"event_type": "MESSAGE_SENT", "user": "teste", "details": "Length: 7", "timestamp": "2025-06-29T20:39:00.039464", "severity": "INFO"}
+2025-06-29 20:40:08 - INFO - {"event_type": "FILE_SENT", "user": "teste", "details": "File: requirements.txt, Size: 93 bytes", "timestamp": "2025-06-29T20:40:08.301780", "severity": "INFO"}
+2025-06-29 20:42:39 - INFO - {"event_type": "CLIENT_DISCONNECT", "user": "teste", "details": "Clean disconnect", "timestamp": "2025-06-29T20:42:39.994964", "severity": "INFO"}
+2025-06-29 20:58:07 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T20:58:07.236973", "severity": "INFO"}
+2025-06-29 20:58:24 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T20:58:24.547755", "severity": "INFO"}
+2025-06-29 21:21:04 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T21:21:04.169640", "severity": "INFO"}
+2025-06-29 21:28:22 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T21:28:22.501594", "severity": "INFO"}
+2025-06-29 21:28:22 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-29T21:28:22.507598", "severity": "INFO"}
+2025-06-29 21:28:27 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-29T21:28:27.521378", "severity": "INFO"}
+2025-06-29 21:28:32 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-29T21:28:32.528800", "severity": "INFO"}
+2025-06-29 21:28:37 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-29T21:28:37.542604", "severity": "INFO"}
+2025-06-29 21:28:40 - INFO - {"event_type": "SERVER_SHUTDOWN", "user": "Admin", "details": "Manual shutdown", "timestamp": "2025-06-29T21:28:40.642392", "severity": "INFO"}
+2025-06-29 21:50:34 - INFO - {"event_type": "SERVER_START", "user": "system", "details": "Server started on localhost:12345", "timestamp": "2025-06-29T21:50:34.748092", "severity": "INFO"}
+2025-06-29 21:50:58 - INFO - {"event_type": "USER_LOGIN", "user": "test", "details": "Successful login from 127.0.0.1", "timestamp": "2025-06-29T21:50:58.391555", "severity": "INFO"}
+2025-06-29 21:51:14 - INFO - {"event_type": "USER_LOGIN", "user": "test2", "details": "Successful login from 127.0.0.1", "timestamp": "2025-06-29T21:51:14.631777", "severity": "INFO"}
+2025-06-29 21:52:06 - INFO - {"event_type": "FILE_TRANSFER", "user": "test2", "details": "File uploaded: requirements.txt (93 bytes)", "timestamp": "2025-06-29T21:52:06.163554", "severity": "INFO"}
+2025-06-29 21:53:38 - INFO - {"event_type": "USER_DISCONNECT", "user": "test2", "details": "User disconnected", "timestamp": "2025-06-29T21:53:38.615425", "severity": "INFO"}
+2025-06-29 21:53:44 - INFO - {"event_type": "USER_DISCONNECT", "user": "test", "details": "User disconnected", "timestamp": "2025-06-29T21:53:44.181955", "severity": "INFO"}
+2025-06-29 22:09:38 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-29T22:09:38.453071", "severity": "INFO"}
+2025-06-29 22:11:40 - INFO - {"event_type": "USER_LOGIN", "user": "{\"username\": \"test\"}", "details": "Successful login from 127.0.0.1", "timestamp": "2025-06-29T22:11:40.135696", "severity": "INFO"}
+2025-06-29 22:12:28 - INFO - {"event_type": "USER_LOGIN", "user": "{\"username\": \"test2\"}", "details": "Successful login from 127.0.0.1", "timestamp": "2025-06-29T22:12:28.596495", "severity": "INFO"}
+2025-06-29 22:13:18 - INFO - {"event_type": "USER_LOGOUT", "user": "{\"username\": \"test2\"}", "details": "User disconnected", "timestamp": "2025-06-29T22:13:18.778250", "severity": "INFO"}
+2025-06-29 22:13:18 - INFO - {"event_type": "USER_LOGOUT", "user": "{\"username\": \"test\"}", "details": "User disconnected", "timestamp": "2025-06-29T22:13:18.779242", "severity": "INFO"}
+2025-06-30 08:37:11 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T08:37:11.037346", "severity": "INFO"}
+2025-06-30 08:39:05 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T08:39:05.121203", "severity": "INFO"}
+2025-06-30 08:39:18 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "test", "details": "IP: 127.0.0.1, Session: VLngep_u...", "timestamp": "2025-06-30T08:39:18.738255", "severity": "INFO"}
+2025-06-30 08:39:27 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "test", "details": "Length: 6", "timestamp": "2025-06-30T08:39:27.411403", "severity": "INFO"}
+2025-06-30 08:40:59 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tet2", "details": "IP: 127.0.0.1, Session: W1jaVEgh...", "timestamp": "2025-06-30T08:40:59.392564", "severity": "INFO"}
+2025-06-30 08:41:02 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tet2", "details": "Length: 9", "timestamp": "2025-06-30T08:41:02.257553", "severity": "INFO"}
+2025-06-30 08:41:06 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tet2", "details": "Length: 7", "timestamp": "2025-06-30T08:41:06.417723", "severity": "INFO"}
+2025-06-30 08:41:47 - WARNING - {"event_type": "MALICIOUS_MESSAGE", "user": "test", "details": "Message: <script></script>...", "timestamp": "2025-06-30T08:41:47.107696", "severity": "WARNING"}
+2025-06-30 08:42:16 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-30T08:42:16.561295", "severity": "INFO"}
+2025-06-30 08:46:02 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T08:46:02.462241", "severity": "INFO"}
+2025-06-30 09:09:57 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T09:09:57.712719", "severity": "INFO"}
+2025-06-30 09:11:07 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T09:11:07.231896", "severity": "INFO"}
+2025-06-30 09:12:50 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tet1", "details": "IP: 127.0.0.1, Session: b7daK-BP...", "timestamp": "2025-06-30T09:12:50.600518", "severity": "INFO"}
+2025-06-30 09:13:01 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tet1", "details": "Length: 7", "timestamp": "2025-06-30T09:13:01.309083", "severity": "INFO"}
+2025-06-30 09:13:13 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tet2", "details": "IP: 127.0.0.1, Session: R2UvBKdd...", "timestamp": "2025-06-30T09:13:13.611577", "severity": "INFO"}
+2025-06-30 09:13:19 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tet2", "details": "Length: 8", "timestamp": "2025-06-30T09:13:19.499069", "severity": "INFO"}
+2025-06-30 09:13:52 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tet1", "details": "Length: 9", "timestamp": "2025-06-30T09:13:52.082604", "severity": "INFO"}
+2025-06-30 09:14:05 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tet1", "details": "Length: 5", "timestamp": "2025-06-30T09:14:05.017410", "severity": "INFO"}
+2025-06-30 09:14:33 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-30T09:14:33.822882", "severity": "INFO"}
+2025-06-30 09:27:46 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T09:27:46.765568", "severity": "INFO"}
+2025-06-30 09:28:57 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T09:28:57.514085", "severity": "INFO"}
+2025-06-30 09:29:14 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tetete1", "details": "IP: 127.0.0.1, Session: qS1kzix9...", "timestamp": "2025-06-30T09:29:14.791503", "severity": "INFO"}
+2025-06-30 09:29:28 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tetet2", "details": "IP: 127.0.0.1, Session: k4NUC4hW...", "timestamp": "2025-06-30T09:29:28.837381", "severity": "INFO"}
+2025-06-30 09:29:34 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetete1", "details": "Length: 10", "timestamp": "2025-06-30T09:29:34.731485", "severity": "INFO"}
+2025-06-30 09:29:44 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetet2", "details": "Length: 9", "timestamp": "2025-06-30T09:29:44.238490", "severity": "INFO"}
+2025-06-30 10:06:07 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T10:06:07.245152", "severity": "INFO"}
+2025-06-30 10:06:26 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T10:06:26.497695", "severity": "INFO"}
+2025-06-30 10:06:51 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tetete1", "details": "IP: 127.0.0.1, Session: WqZRZBy6...", "timestamp": "2025-06-30T10:06:51.520340", "severity": "INFO"}
+2025-06-30 10:06:57 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetete1", "details": "Length: 7", "timestamp": "2025-06-30T10:06:57.934168", "severity": "INFO"}
+2025-06-30 10:07:02 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetete1", "details": "Length: 7", "timestamp": "2025-06-30T10:07:02.574644", "severity": "INFO"}
+2025-06-30 10:07:15 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tetet2", "details": "IP: 127.0.0.1, Session: uGz1TMcC...", "timestamp": "2025-06-30T10:07:15.976927", "severity": "INFO"}
+2025-06-30 10:07:19 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetet2", "details": "Length: 7", "timestamp": "2025-06-30T10:07:19.145754", "severity": "INFO"}
+2025-06-30 10:07:30 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetete1", "details": "Length: 5", "timestamp": "2025-06-30T10:07:30.074813", "severity": "INFO"}
+2025-06-30 10:09:11 - INFO - {"event_type": "FILE_PROCESSED", "user": "tetete1", "details": "File: requirements.txt, Size: 93", "timestamp": "2025-06-30T10:09:11.344072", "severity": "INFO"}
+2025-06-30 10:09:43 - WARNING - {"event_type": "MALICIOUS_MESSAGE", "user": "tetete1", "details": "Message: <script></script>...", "timestamp": "2025-06-30T10:09:43.371345", "severity": "WARNING"}
+2025-06-30 10:20:17 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T10:20:17.920460", "severity": "INFO"}
+2025-06-30 10:20:59 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T10:20:59.251205", "severity": "INFO"}
+2025-06-30 10:21:08 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tete1", "details": "IP: 127.0.0.1, Session: xs-mGE8a...", "timestamp": "2025-06-30T10:21:08.880458", "severity": "INFO"}
+2025-06-30 10:21:15 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tetet2", "details": "IP: 127.0.0.1, Session: k-2rp3L7...", "timestamp": "2025-06-30T10:21:15.365278", "severity": "INFO"}
+2025-06-30 10:21:19 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetet2", "details": "Length: 8", "timestamp": "2025-06-30T10:21:19.891037", "severity": "INFO"}
+2025-06-30 10:21:34 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete1", "details": "Length: 8", "timestamp": "2025-06-30T10:21:34.661406", "severity": "INFO"}
+2025-06-30 10:22:01 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete1", "details": "Length: 7", "timestamp": "2025-06-30T10:22:01.360977", "severity": "INFO"}
+2025-06-30 10:22:06 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetet2", "details": "Length: 8", "timestamp": "2025-06-30T10:22:06.893412", "severity": "INFO"}
+2025-06-30 10:32:04 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T10:32:04.346459", "severity": "INFO"}
+2025-06-30 10:32:28 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tete1", "details": "IP: 127.0.0.1, Session: R_FCeqMM...", "timestamp": "2025-06-30T10:32:28.453975", "severity": "INFO"}
+2025-06-30 10:32:36 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tete2", "details": "IP: 127.0.0.1, Session: UbcTSZc3...", "timestamp": "2025-06-30T10:32:36.500656", "severity": "INFO"}
+2025-06-30 10:32:45 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete1", "details": "Length: 9", "timestamp": "2025-06-30T10:32:45.839105", "severity": "INFO"}
+2025-06-30 10:32:51 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete2", "details": "Length: 9", "timestamp": "2025-06-30T10:32:51.289479", "severity": "INFO"}
+2025-06-30 10:33:47 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete2", "details": "Length: 7", "timestamp": "2025-06-30T10:33:47.134712", "severity": "INFO"}
+2025-06-30 10:33:50 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete2", "details": "Length: 4", "timestamp": "2025-06-30T10:33:50.136910", "severity": "INFO"}
+2025-06-30 10:33:51 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete2", "details": "Length: 4", "timestamp": "2025-06-30T10:33:51.436866", "severity": "INFO"}
+2025-06-30 10:33:53 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete2", "details": "Length: 2", "timestamp": "2025-06-30T10:33:53.968776", "severity": "INFO"}
+2025-06-30 10:34:12 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete1", "details": "Length: 2", "timestamp": "2025-06-30T10:34:12.351437", "severity": "INFO"}
+2025-06-30 10:43:04 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T10:43:04.512556", "severity": "INFO"}
+2025-06-30 10:43:14 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T10:43:14.327840", "severity": "INFO"}
+2025-06-30 10:43:36 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tete1", "details": "IP: 127.0.0.1, Session: EpsRPJti...", "timestamp": "2025-06-30T10:43:36.796283", "severity": "INFO"}
+2025-06-30 10:43:51 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "tetet2", "details": "IP: 127.0.0.1, Session: 12kbTRIs...", "timestamp": "2025-06-30T10:43:51.862321", "severity": "INFO"}
+2025-06-30 10:44:00 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tetet2", "details": "Length: 11", "timestamp": "2025-06-30T10:44:00.199834", "severity": "INFO"}
+2025-06-30 10:44:07 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete1", "details": "Length: 9", "timestamp": "2025-06-30T10:44:07.851116", "severity": "INFO"}
+2025-06-30 10:44:14 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete1", "details": "Length: 10", "timestamp": "2025-06-30T10:44:14.130271", "severity": "INFO"}
+2025-06-30 10:44:18 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete1", "details": "Length: 7", "timestamp": "2025-06-30T10:44:18.133657", "severity": "INFO"}
+2025-06-30 10:44:19 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tete1", "details": "Length: 7", "timestamp": "2025-06-30T10:44:19.364675", "severity": "INFO"}
