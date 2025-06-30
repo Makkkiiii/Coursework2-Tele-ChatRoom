@@ -2,7 +2,9 @@
     "python.analysis.extraPaths": [
         "./Custom Module",
         "./Tests+Module",
-        "./Main"
+        "./Main",
+        "./Main-PyQT-GUI",
+        "./Main-PyQT-GUI"
     ],
     "python.testing.unittestArgs": [
         "-v",
