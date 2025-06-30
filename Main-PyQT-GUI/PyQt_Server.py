@@ -8,6 +8,7 @@ import sys
 import socket
 import threading
 import json
+import time
 from datetime import datetime
 from typing import Optional
 from core import Message, MessageQueue, UserManager, ChatHistory
@@ -174,12 +175,7 @@ class SecureChatServer:
         client_ip = client_address[0]
         
         try:
-            # Send welcome message using basic encryption (for compatibility)
-            welcome_msg = {
-                "type": "server_message",
-                "content": "🔒 Welcome to Secure Chat! Please send your username."
-            }
-            self._send_secure_message(client_socket, welcome_msg, use_basic_encryption=True)
+            # Remove welcome message - user requested no security messages
             
             # Receive and validate username
             data = client_socket.recv(1024).decode()
@@ -251,22 +247,21 @@ class SecureChatServer:
             # Store session
             self.user_sessions[username] = session_id
             
-            # Send success confirmation
+            # Send success confirmation - simplified
             success_msg = {
                 "type": "login_success",
-                "content": f"🔒 Welcome {username}! Secure connection established.",
-                "users": self.user_manager.get_users(),
-                "security_level": "HIGH"
+                "content": f"Connected as {username}",
+                "users": self.user_manager.get_users()
             }
             self._send_message_to_client(client_socket, success_msg)
             
             # Broadcast updated user list to all existing clients
             self._broadcast_user_list_update()
             
-            # Notify other users
+            # Notify other users - simplified message
             join_message = Message(
-                sender="🔒 SecureSystem",
-                content=f"{username} joined the secure chat",
+                sender="System",
+                content=f"{username} joined the chat",
                 msg_type="system"
             )
             self.message_queue.put(join_message)
@@ -1199,11 +1194,13 @@ class ModernServerGUI(QMainWindow):
         self.add_security_event(event, event_type, details)
     
     def on_message_display(self, message):
-        """Handle message display"""
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        """Handle message display with updated formatting"""
         if message.msg_type == "system":
-            self.messages_display.append(f"[{timestamp}] SYSTEM: {message.content}")
+            # SYSTEM messages - no timestamp, clean formatting
+            self.messages_display.append(f"SYSTEM: {message.content}")
         else:
+            # Client messages - 12-hour format with AM/PM
+            timestamp = datetime.now().strftime("%I:%M %p")
             self.messages_display.append(f"[{timestamp}] {message.sender}: {message.content}")
     
     def on_server_error(self, error):
@@ -1334,7 +1331,7 @@ class ModernServerGUI(QMainWindow):
                             
                             # Notify other users
                             kick_message = Message(
-                                sender="🔒 SecureSystem",
+                                sender="System",
                                 content=f"{username} was kicked from the server",
                                 msg_type="system"
                             )
@@ -1409,7 +1406,22 @@ Messages Encrypted: {report.get('metrics', {}).get('messages_encrypted', 0)}
 
 def main():
     """Main function to run the server application"""
+    # Comprehensive Qt warning suppression
+    import os
+    import sys
+    os.environ['QT_LOGGING_RULES'] = '*=false'
+    os.environ['QT_DEBUG_CONSOLE'] = '0'
+    os.environ['QTWEBENGINE_CHROMIUM_FLAGS'] = '--disable-logging'
+    
+    # Redirect Qt warnings to null
+    import io
+    old_stderr = sys.stderr
+    sys.stderr = io.StringIO()
+    
     app = QApplication(sys.argv)
+    
+    # Restore stderr after app creation
+    sys.stderr = old_stderr
     
     # Set application properties
     app.setApplicationName("TeleChat Server")

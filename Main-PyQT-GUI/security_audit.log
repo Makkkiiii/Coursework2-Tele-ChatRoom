@@ -1,0 +1,7 @@
+2025-06-30 13:25:02 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T13:25:02.849012", "severity": "INFO"}
+2025-06-30 14:48:13 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T14:48:13.839838", "severity": "INFO"}
+2025-06-30 15:00:35 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T15:00:35.461227", "severity": "INFO"}
+2025-06-30 15:00:47 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T15:00:47.129266", "severity": "INFO"}
+2025-06-30 15:13:20 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T15:13:20.773918", "severity": "INFO"}
+2025-06-30 15:17:22 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T15:17:22.293047", "severity": "INFO"}
+2025-06-30 15:26:59 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-30T15:26:59.500396", "severity": "INFO"}

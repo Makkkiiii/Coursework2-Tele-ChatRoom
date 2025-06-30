@@ -94,6 +94,9 @@ class ChatClient:
         self.security_manager = SecurityManager()
         self.file_manager = FileManager("received_files")
         
+        # Message deduplication
+        self.processed_messages = set()
+        
         # Message handlers
         self.message_handlers = {
             "server_message": self._handle_server_message,
@@ -157,7 +160,14 @@ class ChatClient:
         if self.gui:
             # Show server shutdown message if connection was unexpectedly lost
             self.gui.add_system_message("🛑 Connection to server lost - Server may have shut down")
-            self.gui.on_disconnected()
+            
+            # Show session duration with consistent formatting
+            if self.gui.start_time:
+                duration = datetime.now() - self.gui.start_time
+                self.gui.add_system_message(f"🕒 Session duration: {str(duration).split('.')[0]}")
+            
+            # Use clean disconnection (no redundant messages)
+            self.gui.on_disconnected_clean()
     
     def _handle_server_message(self, data):
         """Handle server messages"""
@@ -169,18 +179,31 @@ class ChatClient:
         if self.gui:
             self.gui.add_system_message(data["content"])
             
-            # Show security level based on server response
-            security_level = data.get("security_level", "STANDARD")
-            if security_level == "HIGH":
-                self.gui.add_system_message("🔒 HIGH SECURITY MODE ACTIVATED")
-                self.gui.add_system_message("🛡️ Advanced threat protection enabled")
+            # Remove security level messages - user requested no security messages
             
             self.gui.update_user_list(data.get("users", []))
             self.gui.on_connected()
     
     def _handle_message(self, data):
-        """Handle chat messages"""
+        """Handle chat messages with deduplication"""
         message_data = data["data"]
+        
+        # Create unique message ID for deduplication
+        message_id = f"{message_data.get('sender', '')}_{message_data.get('timestamp', '')}_{hash(str(message_data.get('content', '')))}"
+        
+        if message_id in self.processed_messages:
+            print(f"Duplicate message detected, skipping: {message_id}")
+            return  # Skip duplicate message
+        
+        self.processed_messages.add(message_id)
+        
+        # Keep only recent messages in cache (prevent memory leak)
+        if len(self.processed_messages) > 1000:
+            # Remove oldest 200 messages
+            oldest_messages = list(self.processed_messages)[:200]
+            for old_msg in oldest_messages:
+                self.processed_messages.discard(old_msg)
+        
         message = Message.from_dict(message_data)
         
         if self.gui:
@@ -194,14 +217,34 @@ class ChatClient:
     def _handle_kicked(self, data):
         """Handle being kicked from server"""
         if self.gui:
-            self.gui.show_error(data["content"])
-            self.gui.disconnect()
+            # Show only the correct kick sequence as requested
+            self.gui.add_system_message(f"🛑 Error: {data['content']}")
+            
+            # Show session duration
+            if self.gui.start_time:
+                duration = datetime.now() - self.gui.start_time
+                self.gui.add_system_message(f"🕒 Session duration: {str(duration).split('.')[0]}")
+            
+            # Clean termination messages
+            self.gui.add_system_message("🔒 SECURE CONNECTION TERMINATED")
+            self.gui.add_system_message("🛡️ All encryption keys cleared from memory")
+            
+            # Disconnect cleanly without showing additional messages
+            self.disconnect_silently()
     
     def _handle_server_shutdown(self, data):
         """Handle server shutdown"""
         if self.gui:
-            self.gui.add_system_message(data["content"])
-            self.gui.disconnect()
+            # Only show shutdown message once
+            self.gui.add_system_message("🛑 Server is shutting down. Connection lost.")
+            
+            # Show session duration with consistent formatting
+            if self.gui.start_time:
+                duration = datetime.now() - self.gui.start_time
+                self.gui.add_system_message(f"🕒 Session duration: {str(duration).split('.')[0]}")
+            
+            # Disconnect without showing additional messages
+            self.gui.on_disconnected_clean()
     
     def _handle_user_list_update(self, data):
         """Handle user list updates from server"""
@@ -297,6 +340,14 @@ class ChatClient:
             except:
                 pass  # Ignore errors during disconnect
         
+        self._close_connection()
+    
+    def disconnect_silently(self):
+        """Disconnect without sending any message to server (for kicks/errors)"""
+        self._close_connection()
+    
+    def _close_connection(self):
+        """Close the connection and cleanup"""
         self.connected = False
         if self.listening_thread:
             self.listening_thread.stop()
@@ -312,9 +363,16 @@ class ChatClient:
 class ModernChatWidget(QWidget):
     """Modern chat message display widget"""
     
+    # Signal for thread-safe message display - no QTextCursor
+    message_display_signal = pyqtSignal(str, str, str, bool)  # html, msg_type, sender, is_own
+    
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.message_cache = set()  # Prevent duplicate messages
         self.setup_ui()
+        
+        # Connect the signal to the display method (main thread only)
+        self.message_display_signal.connect(self._display_message_html)
         
     def setup_ui(self):
         """Setup the chat UI"""
@@ -322,37 +380,36 @@ class ModernChatWidget(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(2)
         
-        # Chat display area with enhanced WhatsApp-like background
+        # Chat display area with clean, professional background
         self.chat_display = QTextBrowser()
         self.chat_display.setOpenExternalLinks(False)
         self.chat_display.setStyleSheet("""
             QTextBrowser {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #0c1419, stop:0.5 #111b21, stop:1 #0b141a);
-                border: 2px solid #2a2f32;
-                border-radius: 12px;
-                padding: 20px;
-                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #1a1a1a;  /* Clean dark background */
+                border: 2px solid #333333;
+                border-radius: 8px;
+                padding: 16px;
+                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
                 font-size: 14px;
                 line-height: 1.5;
-                selection-background-color: #075e54;
+                selection-background-color: #404040;
             }
             QTextBrowser:focus {
-                border: 2px solid #25d366;
+                border: 2px solid #4285f4;  /* Clean blue focus */
             }
             QScrollBar:vertical {
-                background: #1f2937;
+                background: #2a2a2a;
                 width: 12px;
                 border-radius: 6px;
                 margin: 0;
             }
             QScrollBar::handle:vertical {
-                background: #4b5563;
+                background: #555555;
                 border-radius: 6px;
                 min-height: 20px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #6b7280;
+                background: #666666;
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
@@ -362,102 +419,110 @@ class ModernChatWidget(QWidget):
         main_layout.addWidget(self.chat_display)
     
     def add_message(self, message: Message, is_own_message: bool = False):
-        """Add a message to the chat display with enhanced WhatsApp-style design"""
-        timestamp = message.timestamp.strftime("%H:%M")
+        """Add a message to the chat display with enhanced modern design (thread-safe)"""
+        # Create unique message ID to prevent duplicates
+        message_id = f"{message.sender}_{message.timestamp}_{hash(message.content)}"
+        if message_id in self.message_cache:
+            return  # Duplicate message, skip
         
-        # Enhanced styling with better colors and rounded corners - WhatsApp style
-        if message.msg_type == "system":
-            # System messages centered with gray theme
-            alignment = "center"
-            bg_color = "#4a4a4a"
-            text_color = "#ffffff"
-            border_color = "#666666"
-        elif is_own_message:
-            # Own messages aligned to the right with blue theme (sent messages)
-            alignment = "right"
-            bg_color = "#007bff"  # Blue background for sent messages
-            text_color = "#ffffff"  # White text for better readability
-            border_color = "#0056b3"
-        else:
-            # Other messages aligned to the left with green theme (received messages)
-            alignment = "left"
-            bg_color = "#25d366"  # Green background for received messages
-            text_color = "#ffffff"  # White text
-            border_color = "#1da851"
+        self.message_cache.add(message_id)
         
-        # Create message HTML with enhanced styling
-        if message.msg_type == "system":
-            html = f"""
-            <div style="text-align: center; margin: 15px 0; clear: both;">
-                <div style="display: inline-block; padding: 8px 16px; 
-                           background: {bg_color} !important;
-                           background-color: {bg_color} !important; 
-                           color: {text_color} !important; border-radius: 25px; border: 1px solid {border_color}; 
-                           font-size: 12px; font-style: italic;
-                           max-width: 80%; text-align: center;
-                           box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <span style="opacity: 0.9; font-weight: 500; color: {text_color} !important;">[{timestamp}]</span> 
-                    <strong style="color: {text_color} !important;">SYSTEM:</strong> <span style="color: {text_color} !important;">{message.content}</span>
-                </div>
-            </div>
-            """
-        elif message.msg_type == "file":
-            # Enhanced file message styling
-            file_icon = "📎"
-            margin_style = "margin-left: auto; max-width: 75%;" if is_own_message else "margin-right: auto; max-width: 75%;"
-            html = f"""
-            <div style="text-align: {alignment}; margin: 10px 0; clear: both;">
-                <div style="display: inline-block; {margin_style} padding: 16px 20px; 
-                           background: {bg_color} !important;
-                           background-color: {bg_color} !important; 
-                           color: {text_color} !important; border-radius: 20px; 
-                           border: 1px solid {border_color};
-                           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                           min-width: 60px;">
-                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 6px; font-weight: 500; color: {text_color} !important;">[{timestamp}]</div>
-                    <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px; color: {text_color} !important;">{message.sender}</div>
-                    <div style="font-size: 16px; display: flex; align-items: center; gap: 8px; color: {text_color} !important;">
-                        <span style="font-size: 20px;">{file_icon}</span>
-                        <span style="word-wrap: break-word; color: {text_color} !important;">{message.content}</span>
-                    </div>
-                </div>
-            </div>
-            """
-        else:
-            # Enhanced regular text message with better styling and proper background
-            margin_style = "margin-left: auto; max-width: 75%;" if is_own_message else "margin-right: auto; max-width: 75%;"
-            sender_display = "" if is_own_message else f"<div style='font-weight: bold; margin-bottom: 6px; font-size: 14px; color: {text_color} !important; opacity: 0.95;'>{message.sender}</div>"
-            
-            html = f"""
-            <div style="text-align: {alignment}; margin: 8px 0; clear: both;">
-                <div style="display: inline-block; {margin_style} padding: 12px 18px; 
-                           background: {bg_color} !important; 
-                           background-color: {bg_color} !important; 
-                           color: {text_color} !important; border-radius: 20px; 
-                           border: 1px solid {border_color};
-                           word-wrap: break-word; position: relative;
-                           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                           min-width: 60px;">
-                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 4px; font-weight: 500; color: {text_color} !important;">[{timestamp}]</div>
-                    {sender_display}
-                    <div style="line-height: 1.5; font-size: 14px; word-break: break-word; color: {text_color} !important;">{message.content}</div>
-                </div>
-            </div>
-            """
+        # Use 12-hour format with AM/PM for client messages (no timestamp for SYSTEM)
+        timestamp = message.timestamp.strftime("%I:%M %p") if message.msg_type != "system" else ""
         
-        # Insert the message with smooth scrolling
+        # Generate clean HTML for the message
+        html = self._generate_message_html(message, is_own_message, timestamp)
+        
+        # Emit signal for thread-safe display (no direct QTextCursor manipulation)
+        self.message_display_signal.emit(html, message.msg_type, message.sender, is_own_message)
+    
+    def _display_message_html(self, html: str, msg_type: str, sender: str, is_own: bool):
+        """Display message HTML in main thread only (connected to signal)"""
+        # This method runs only in the main thread, safe for QTextEdit operations
         cursor = self.chat_display.textCursor()
         cursor.movePosition(QTextCursor.End)
+        
+        # Insert the HTML
         cursor.insertHtml(html)
         
-        # Enhanced auto-scroll to bottom with animation
-        scrollbar = self.chat_display.verticalScrollBar()
-        if scrollbar:
-            scrollbar.setValue(scrollbar.maximum())
+        # Simple line break after each message
+        cursor.insertHtml("<br>")
+        
+        # Auto-scroll to bottom
+        self.chat_display.ensureCursorVisible()
+    
+    def _generate_message_html(self, message: Message, is_own_message: bool, timestamp: str) -> str:
+        """Generate clean message layout like real messaging apps"""
+        if message.msg_type == "system":
+            # System messages - plain white text, centered, small gap
+            return f"""
+            <div style="text-align: center; margin: 8px 0; padding: 4px 0;">
+                <span style="color: #ffffff; font-size: 13px; font-style: italic;">
+                    {message.content}
+                </span>
+            </div>
+            """
+        
+        # Regular messages using table layout (like WhatsApp/Telegram)
+        if is_own_message:
+            # Your messages - right aligned using table
+            content_to_display = message.content
+            if message.msg_type == "file":
+                file_icon = "📄" if not message.content.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')) else "🖼️"
+                content_to_display = f"{file_icon} {message.content}"
+            
+            return f"""
+            <table width="100%" style="margin: 8px 0;">
+                <tr>
+                    <td width="30%"></td>
+                    <td width="70%" style="text-align: right;">
+                        <div style="display: inline-block; text-align: right; max-width: 100%;">
+                            <div style="color: #4ade80; font-size: 13px; font-weight: 600; margin-bottom: 2px;">
+                                You
+                            </div>
+                            <div style="color: #ffffff; font-size: 14px; line-height: 1.3; margin-bottom: 2px; word-wrap: break-word;">
+                                {content_to_display}
+                            </div>
+                            <div style="color: #999999; font-size: 11px;">
+                                {timestamp}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            """
+        else:
+            # Other messages - left aligned using table
+            content_to_display = message.content
+            if message.msg_type == "file":
+                file_icon = "📄" if not message.content.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')) else "🖼️"
+                content_to_display = f"{file_icon} {message.content}"
+            
+            return f"""
+            <table width="100%" style="margin: 8px 0;">
+                <tr>
+                    <td width="70%" style="text-align: left;">
+                        <div style="display: inline-block; text-align: left; max-width: 100%;">
+                            <div style="color: #60a5fa; font-size: 13px; font-weight: 600; margin-bottom: 2px;">
+                                {message.sender}
+                            </div>
+                            <div style="color: #ffffff; font-size: 14px; line-height: 1.3; margin-bottom: 2px; word-wrap: break-word;">
+                                {content_to_display}
+                            </div>
+                            <div style="color: #999999; font-size: 11px;">
+                                {timestamp}
+                            </div>
+                        </div>
+                    </td>
+                    <td width="30%"></td>
+                </tr>
+            </table>
+            """
     
     def clear_chat(self):
         """Clear all messages"""
         self.chat_display.clear()
+        self.message_cache.clear()  # Clear duplicate prevention cache
 
 
 class ModernChatGUI(QMainWindow):
@@ -1098,20 +1163,17 @@ class ModernChatGUI(QMainWindow):
         self.username_entry.setEnabled(False)
         
         # Update security panel
-        self.encryption_status.setText("🔐 Encryption: AES-256 Active")
+        self.encryption_status.setText("🔐 Encrypted Connection")
         self.encryption_status.setStyleSheet("color: #27ae60; font-weight: bold;")
         self.message_counter.setText("📊 Messages: 0 sent")
         
         # Focus on message entry
         self.message_entry.setFocus()
         
-        # Add security notifications
-        self.add_system_message("🔒 SECURE CONNECTION ESTABLISHED")
-        self.add_system_message("🛡️ All messages are encrypted with AES-256")
-        self.add_system_message("🔑 Using PBKDF2 key derivation with 100,000 iterations")
+        # Remove security notifications - user requested no security messages
     
     def on_disconnected(self):
-        """Handle disconnection"""
+        """Handle disconnection for user-initiated disconnects"""
         self.connected = False
         self.set_chat_state(False)
         
@@ -1139,23 +1201,61 @@ class ModernChatGUI(QMainWindow):
         self.encryption_status.setStyleSheet("color: #ffd43b; font-weight: bold;")
         self.session_info.setText("🕒 Session: Ended")
         
+        # Only show messages for user-initiated disconnects
         if self.start_time:
             duration = datetime.now() - self.start_time
             self.add_system_message(f"🕒 Session duration: {duration}")
         
         # Clear users list
         self.users_listbox.clear()
+
+    def on_disconnected_clean(self):
+        """Handle disconnection without showing redundant messages"""
+        self.connected = False
+        self.set_chat_state(False)
         
-        # Add disconnection message
-        self.add_system_message("🔒 SECURE CONNECTION TERMINATED")
-        self.add_system_message("🛡️ All encryption keys cleared from memory")
-    
+        self.status_label.setText("Status: Disconnected")
+        self.status_label.setStyleSheet("""
+            QLabel {
+                font-weight: bold;
+                color: #ff6b6b;
+                padding: 8px 12px;
+                background-color: #2d1b1b;
+                border-radius: 8px;
+                margin-left: 20px;
+                border: 1px solid #ff6b6b;
+            }
+        """)
+        
+        self.connect_button.setEnabled(True)
+        self.disconnect_button.setEnabled(False)
+        self.host_entry.setEnabled(True)
+        self.port_entry.setEnabled(True)
+        self.username_entry.setEnabled(True)
+        
+        # Update security panel
+        self.encryption_status.setText("🔐 Encryption: Inactive")
+        self.encryption_status.setStyleSheet("color: #ffd43b; font-weight: bold;")
+        self.session_info.setText("🕒 Session: Ended")
+        
+        # Clear users list
+        self.users_listbox.clear()
+        
+        # Disconnect from the client
+        self.client.disconnect()
+
     def set_chat_state(self, enabled):
         """Enable or disable chat components"""
-        self.message_entry.setEnabled(enabled)
-        self.send_button.setEnabled(enabled)
-        self.share_file_button.setEnabled(enabled)
-        self.clear_chat_button.setEnabled(enabled)
+        if hasattr(self, 'message_entry'):
+            self.message_entry.setEnabled(enabled)
+        if hasattr(self, 'send_button'):
+            self.send_button.setEnabled(enabled)
+        if hasattr(self, 'file_button'):
+            self.file_button.setEnabled(enabled)
+        if hasattr(self, 'clear_button'):
+            self.clear_button.setEnabled(enabled)
+
+    # ...existing code...
     
     def send_message(self):
         """Send a text message"""
@@ -1222,11 +1322,23 @@ class ModernChatGUI(QMainWindow):
         # Handle file downloads
         if message.msg_type == "file" and not is_own_message and message.file_data:
             try:
+                # Ensure receive directory exists
+                receive_dir = self.client.file_manager.base_dir
+                if not os.path.exists(receive_dir):
+                    os.makedirs(receive_dir)
+                
                 saved_path = self.client.file_manager.decode_file(message.file_data)
-                # Update message content to show download path
-                message.content += f" (Saved to: {os.path.basename(saved_path)})"
+                # Update message content to show download path with full path for debugging
+                rel_path = os.path.basename(saved_path)
+                full_path = os.path.abspath(saved_path)
+                message.content += f" (Saved to: {rel_path})"
+                
+                # Log the successful download for debugging
+                print(f"File received and saved: {full_path}")
+                
             except Exception as e:
                 message.content += f" (Download failed: {e})"
+                print(f"File download error: {e}")
         
         self.chat_widget.add_message(message, is_own_message)
     
@@ -1250,7 +1362,7 @@ class ModernChatGUI(QMainWindow):
     def show_error(self, message):
         """Show error message"""
         QMessageBox.critical(self, "Error", message)
-        self.add_system_message(f"Error: {message}")
+        # Don't add redundant system message since it's already handled in kick/disconnect handlers
     
     def test_encryption(self):
         """Test and display encryption process"""
@@ -1356,7 +1468,22 @@ YOUR {action_type.lower()} is SECURE and protected from eavesdropping!
 
 def main():
     """Main function to run the application"""
+    # Comprehensive Qt warning suppression
+    import os
+    import sys
+    os.environ['QT_LOGGING_RULES'] = '*=false'
+    os.environ['QT_DEBUG_CONSOLE'] = '0'
+    os.environ['QTWEBENGINE_CHROMIUM_FLAGS'] = '--disable-logging'
+    
+    # Redirect Qt warnings to null
+    import io
+    old_stderr = sys.stderr
+    sys.stderr = io.StringIO()
+    
     app = QApplication(sys.argv)
+    
+    # Restore stderr after app creation
+    sys.stderr = old_stderr
     
     # Set application properties
     app.setApplicationName("TeleChat Client")
