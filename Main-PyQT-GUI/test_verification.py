@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(__file__))
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTimer, QThread, pyqtSignal, QObject
-import PyQt_Client
+import Main_Client
 from core import Message
 import time
 
@@ -62,7 +62,7 @@ def main():
     app = QApplication(sys.argv)
     
     # Create a minimal chat widget for testing
-    chat_widget = PyQt_Client.ModernChatWidget()
+    chat_widget = Main_Client.ModernChatWidget()
     
     # Create tester
     tester = MessageTester(chat_widget)
