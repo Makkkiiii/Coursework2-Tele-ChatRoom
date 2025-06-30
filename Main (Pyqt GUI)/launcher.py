@@ -32,7 +32,7 @@ class TeleChatLauncher(QWidget):
         
         # Title
         title = QLabel("🔒 TeleChat")
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignCenter) # type: ignore
         title.setStyleSheet("""
             QLabel {
                 font-size: 32px;
@@ -45,7 +45,7 @@ class TeleChatLauncher(QWidget):
         
         # Subtitle
         subtitle = QLabel("Modern Secure Messaging")
-        subtitle.setAlignment(Qt.AlignCenter)
+        subtitle.setAlignment(Qt.AlignCenter) # type: ignore
         subtitle.setStyleSheet("""
             QLabel {
                 font-size: 16px;
@@ -117,7 +117,7 @@ class TeleChatLauncher(QWidget):
         
         # Footer
         footer = QLabel("Choose Server to host or Client to connect")
-        footer.setAlignment(Qt.AlignCenter)
+        footer.setAlignment(Qt.AlignCenter) # type: ignore
         footer.setStyleSheet("""
             QLabel {
                 font-size: 12px;
