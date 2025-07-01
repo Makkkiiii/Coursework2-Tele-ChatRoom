@@ -141,7 +141,8 @@ class TeleChatLauncher(QWidget):
     def launch_server(self):
         """Launch the server application"""
         try:
-            subprocess.Popen([sys.executable, "Main_Server.py"])
+            server_path = "c:/Users/deven/Desktop/Works/ProgrammingAlgo2/Main-PyQT-GUI/Main_Server.py"
+            subprocess.Popen([sys.executable, server_path])
             self.close()
         except Exception as e:
             print(f"Failed to launch server: {e}")
@@ -149,7 +150,8 @@ class TeleChatLauncher(QWidget):
     def launch_client(self):
         """Launch the client application"""
         try:
-            subprocess.Popen([sys.executable, "Main_Client.py"])
+            client_path = "c:/Users/deven/Desktop/Works/ProgrammingAlgo2/Main-PyQT-GUI/Main_Client.py"
+            subprocess.Popen([sys.executable, client_path])
             self.close()
         except Exception as e:
             print(f"Failed to launch client: {e}")

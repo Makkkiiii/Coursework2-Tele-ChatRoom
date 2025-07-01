@@ -112,3 +112,9 @@
 2025-06-30 19:25:53 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "tset2", "details": "Length: 9", "timestamp": "2025-06-30T19:25:53.076268", "severity": "INFO"}
 2025-06-30 19:26:00 - INFO - {"event_type": "FILE_PROCESSED", "user": "tset2", "details": "File: requirements.txt, Size: 93", "timestamp": "2025-06-30T19:26:00.204321", "severity": "INFO"}
 2025-06-30 19:26:34 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "test1", "details": "Length: 6", "timestamp": "2025-06-30T19:26:34.510799", "severity": "INFO"}
+2025-07-01 13:08:12 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-07-01T13:08:12.426507", "severity": "INFO"}
+2025-07-01 13:09:33 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "test2", "details": "IP: 127.0.0.1, Session: wb8RiYt-...", "timestamp": "2025-07-01T13:09:33.088271", "severity": "INFO"}
+2025-07-01 13:09:38 - INFO - {"event_type": "USER_AUTHENTICATED", "user": "test1", "details": "IP: 127.0.0.1, Session: yx8HsJAB...", "timestamp": "2025-07-01T13:09:38.797059", "severity": "INFO"}
+2025-07-01 13:09:42 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "test1", "details": "Length: 6", "timestamp": "2025-07-01T13:09:42.160481", "severity": "INFO"}
+2025-07-01 13:09:47 - INFO - {"event_type": "MESSAGE_PROCESSED", "user": "test2", "details": "Length: 6", "timestamp": "2025-07-01T13:09:47.797871", "severity": "INFO"}
+2025-07-01 13:12:05 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-07-01T13:12:05.468392", "severity": "INFO"}
