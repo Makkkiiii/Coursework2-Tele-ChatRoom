@@ -1,0 +1,5 @@
+2025-07-01 23:09:20 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-07-01T23:09:20.867712", "severity": "INFO"}
+2025-07-01 23:12:57 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-07-01T23:12:57.123644", "severity": "INFO"}
+2025-07-01 23:25:36 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-07-01T23:25:36.164235", "severity": "INFO"}
+2025-07-01 23:27:09 - INFO - {"event_type": "FILE_PROCESSED", "user": "test2", "details": "File: requirements.txt, Size: 128", "timestamp": "2025-07-01T23:27:09.432768", "severity": "INFO"}
+2025-07-01 23:34:58 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-07-01T23:34:58.746407", "severity": "INFO"}

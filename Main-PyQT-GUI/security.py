@@ -59,48 +59,78 @@ class SecurityAuditLogger:
 
 
 class RateLimiter:
-    """Rate limiting to prevent DoS attacks"""
+    """Advanced rate limiting to prevent DoS attacks with different limits for different operations"""
     
-    def __init__(self, max_requests: int = 30, time_window: int = 60):
-        self.max_requests = max_requests
-        self.time_window = time_window
-        self.requests = {}  # {user_ip: [timestamp, ...]}
-        self.blocked_ips = {}  # {ip: block_until_timestamp}
-    
-    def is_allowed(self, identifier: str) -> bool:
-        """Check if request is allowed (not rate limited)"""
-        current_time = time.time()
+    def __init__(self, 
+                 message_max_requests: int = 15,  # Stricter for chat messages
+                 message_time_window: int = 60,
+                 auth_max_requests: int = 5,      # More lenient for auth attempts
+                 auth_time_window: int = 300,     # 5 minute window for auth
+                 connection_max_requests: int = 10, # Connection attempts
+                 connection_time_window: int = 60):
         
-        # Check if IP is currently blocked
-        if identifier in self.blocked_ips:
-            if current_time < self.blocked_ips[identifier]:
+        # Different limits for different operation types
+        self.limits = {
+            'message': {'max_requests': message_max_requests, 'time_window': message_time_window},
+            'auth': {'max_requests': auth_max_requests, 'time_window': auth_time_window},
+            'connection': {'max_requests': connection_max_requests, 'time_window': connection_time_window}
+        }
+        
+        # Separate tracking for different operation types
+        self.requests = {
+            'message': {},      # {user_ip: [timestamp, ...]}
+            'auth': {},
+            'connection': {}
+        }
+        self.blocked_ips = {
+            'message': {},      # {ip: block_until_timestamp}
+            'auth': {},
+            'connection': {}
+        }
+    
+    def is_allowed(self, identifier: str, operation_type: str = 'message') -> bool:
+        """Check if request is allowed (not rate limited)"""
+        if operation_type not in self.limits:
+            operation_type = 'message'  # Default to message limits
+            
+        current_time = time.time()
+        max_requests = self.limits[operation_type]['max_requests']
+        time_window = self.limits[operation_type]['time_window']
+        
+        # Check if IP is currently blocked for this operation type
+        if identifier in self.blocked_ips[operation_type]:
+            if current_time < self.blocked_ips[operation_type][identifier]:
                 return False
             else:
-                del self.blocked_ips[identifier]
+                del self.blocked_ips[operation_type][identifier]
         
-        # Clean old requests
-        if identifier in self.requests:
-            self.requests[identifier] = [
-                req_time for req_time in self.requests[identifier] 
-                if current_time - req_time < self.time_window
+        # Clean old requests for this operation type
+        if identifier in self.requests[operation_type]:
+            self.requests[operation_type][identifier] = [
+                req_time for req_time in self.requests[operation_type][identifier] 
+                if current_time - req_time < time_window
             ]
         else:
-            self.requests[identifier] = []
+            self.requests[operation_type][identifier] = []
         
         # Check rate limit
-        if len(self.requests[identifier]) >= self.max_requests:
+        if len(self.requests[operation_type][identifier]) >= max_requests:
             # Block IP for double the time window
-            self.blocked_ips[identifier] = current_time + (self.time_window * 2)
+            self.blocked_ips[operation_type][identifier] = current_time + (time_window * 2)
             return False
         
         # Add current request
-        self.requests[identifier].append(current_time)
+        self.requests[operation_type][identifier].append(current_time)
         return True
     
-    def get_remaining_requests(self, identifier: str) -> int:
-        """Get remaining requests for identifier"""
-        current_requests = len(self.requests.get(identifier, []))
-        return max(0, self.max_requests - current_requests)
+    def get_remaining_requests(self, identifier: str, operation_type: str = 'message') -> int:
+        """Get remaining requests for identifier and operation type"""
+        if operation_type not in self.limits:
+            operation_type = 'message'
+            
+        max_requests = self.limits[operation_type]['max_requests']
+        current_requests = len(self.requests[operation_type].get(identifier, []))
+        return max(0, max_requests - current_requests)
 
 
 class InputValidator:
@@ -112,7 +142,8 @@ class InputValidator:
             r'<script[^>]*>.*?</script>',  # XSS
             r'javascript:',  # JavaScript protocol
             r'vbscript:',   # VBScript protocol
-            r'on\w+\s*=',   # Event handlers
+            r'on\w+\s*=',   # Event handlers (onclick, onload, etc.)
+            r'on\s+\w+\s*=', # Event handlers with space
             r'eval\s*\(',   # eval() calls
             r'exec\s*\(',   # exec() calls
             r'import\s+os', # OS imports
@@ -423,8 +454,12 @@ class AdvancedSecurityManager:
         # Initialize security components
         self.audit_logger = SecurityAuditLogger()
         self.rate_limiter = RateLimiter(
-            max_requests=self.config.get("max_requests", 30),
-            time_window=self.config.get("rate_limit_window", 60)
+            message_max_requests=self.config.get("max_requests", 15),
+            message_time_window=self.config.get("rate_limit_window", 60),
+            auth_max_requests=5,
+            auth_time_window=300,
+            connection_max_requests=10,
+            connection_time_window=60
         )
         self.input_validator = InputValidator()
         self.session_manager = SessionManager(
@@ -886,9 +921,9 @@ def test_security_components():
     print("✅ Security Audit Logger - OK")
     
     # Test RateLimiter
-    rate_limiter = RateLimiter(max_requests=5, time_window=60)
+    rate_limiter = RateLimiter(message_max_requests=5, message_time_window=60)
     for i in range(7):
-        allowed = rate_limiter.is_allowed("192.168.1.1")
+        allowed = rate_limiter.is_allowed("192.168.1.1", "message")
         if i < 5:
             assert allowed, f"Request {i+1} should be allowed"
         else:
@@ -975,5 +1010,296 @@ def test_security_components():
     print("=" * 50)
 
 
+class TestSecuritySuite:
+    """Comprehensive security testing suite with authentication"""
+    
+    def __init__(self):
+        # Import here to avoid circular imports
+        from core import SecurityManager, AuthenticationManager
+        
+        self.test_results = {}
+        self.server_password = "TestServer2025!"
+        self.security_manager = SecurityManager(self.server_password)
+        self.auth_manager = AuthenticationManager(self.security_manager)
+    
+    def run_all_tests(self):
+        """Run all security tests"""
+        print("=" * 60)
+        print("RUNNING ENHANCED SECURITY TESTS WITH AUTHENTICATION")
+        print("=" * 60)
+        
+        self.test_password_authentication()
+        self.test_encryption_strength()
+        self.test_brute_force_resistance()
+        self.test_session_management()
+        self.test_message_integrity()
+        self.test_salt_validation()
+        self.test_authentication_manager()
+        
+        self.print_results()
+    
+    def test_password_authentication(self):
+        """Test password authentication mechanism"""
+        print("\n1. Testing Password Authentication...")
+        
+        # Test correct password
+        correct_result = self.security_manager.verify_password(self.server_password)
+        
+        # Test wrong passwords
+        wrong_passwords = [
+            "wrongpassword",
+            "TestServer2024!",  # Close but wrong
+            "",                 # Empty
+            "testserver2025!",  # Wrong case
+            "TestServer2025",   # Missing special char
+        ]
+        
+        wrong_results = [self.security_manager.verify_password(pwd) for pwd in wrong_passwords]
+        
+        # Test case sensitivity
+        case_test = self.security_manager.verify_password("testserver2025!")
+        
+        success = correct_result and not any(wrong_results) and not case_test
+        self.test_results["Password Authentication"] = success
+        
+        print(f"   ✓ Correct password accepted: {correct_result}")
+        print(f"   ✓ Wrong passwords rejected: {not any(wrong_results)}")
+        print(f"   ✓ Case sensitivity working: {not case_test}")
+        print(f"   Result: {'PASS' if success else 'FAIL'}")
+    
+    def test_encryption_strength(self):
+        """Test encryption strength and consistency"""
+        print("\n2. Testing Encryption Strength...")
+        
+        test_messages = [
+            "Simple message",
+            "Message with special chars: !@#$%^&*()",
+            "Very long message " * 100,
+            "Unicode test: 你好世界 🌍",
+            ""  # Empty message
+        ]
+        
+        all_passed = True
+        for msg in test_messages:
+            try:
+                encrypted = self.security_manager.encrypt_message(msg)
+                decrypted = self.security_manager.decrypt_message(encrypted)
+                
+                # Test that encryption produces different results each time
+                encrypted2 = self.security_manager.encrypt_message(msg)
+                different_ciphertext = encrypted != encrypted2 if msg else True
+                
+                passed = (decrypted == msg) and different_ciphertext
+                all_passed &= passed
+                
+                print(f"   ✓ '{msg[:20]}{'...' if len(msg) > 20 else ''}': {'PASS' if passed else 'FAIL'}")
+            except Exception as e:
+                print(f"   ✗ Error with '{msg[:20]}': {e}")
+                all_passed = False
+        
+        self.test_results["Encryption Strength"] = all_passed
+        print(f"   Result: {'PASS' if all_passed else 'FAIL'}")
+    
+    def test_brute_force_resistance(self):
+        """Test resistance to brute force attacks"""
+        print("\n3. Testing Brute Force Resistance...")
+        
+        import time
+        
+        # Test common passwords
+        common_passwords = [
+            "password", "123456", "admin", "root", "guest",
+            "password123", "qwerty", "abc123", "test", "user"
+        ]
+        
+        start_time = time.time()
+        failed_attempts = 0
+        
+        for pwd in common_passwords:
+            if not self.security_manager.verify_password(pwd):
+                failed_attempts += 1
+        
+        end_time = time.time()
+        time_taken = end_time - start_time
+        
+        # Each verification should take reasonable time due to PBKDF2
+        reasonable_time = time_taken > 0.1  # Should take more than 0.1 seconds for 10 attempts
+        all_rejected = failed_attempts == len(common_passwords)
+        
+        success = all_rejected and reasonable_time
+        self.test_results["Brute Force Resistance"] = success
+        
+        print(f"   ✓ Common passwords rejected: {failed_attempts}/{len(common_passwords)}")
+        print(f"   ✓ Time taken: {time_taken:.3f}s (should be > 0.1s)")
+        print(f"   Result: {'PASS' if success else 'FAIL'}")
+    
+    def test_session_management(self):
+        """Test authentication session management"""
+        print("\n4. Testing Session Management...")
+        
+        # Create mock sockets that inherit from object (compatible with set operations)
+        class MockSocket:
+            def __init__(self, socket_id):
+                self.id = socket_id
+        
+        mock_socket1 = MockSocket(1)
+        mock_socket2 = MockSocket(2)
+        
+        # Test authentication
+        auth1 = self.auth_manager.authenticate_client(mock_socket1, self.server_password)
+        auth2 = self.auth_manager.authenticate_client(mock_socket2, "wrong_password")
+        
+        # Test session checking
+        is_auth1 = self.auth_manager.is_authenticated(mock_socket1)
+        is_auth2 = self.auth_manager.is_authenticated(mock_socket2)
+        
+        # Test logout
+        self.auth_manager.logout_client(mock_socket1)
+        is_auth1_after_logout = self.auth_manager.is_authenticated(mock_socket1)
+        
+        success = auth1 and not auth2 and is_auth1 and not is_auth2 and not is_auth1_after_logout
+        self.test_results["Session Management"] = success
+        
+        print(f"   ✓ Correct password authentication: {auth1}")
+        print(f"   ✓ Wrong password rejection: {not auth2}")
+        print(f"   ✓ Session tracking: {is_auth1 and not is_auth2}")
+        print(f"   ✓ Logout functionality: {not is_auth1_after_logout}")
+        print(f"   Result: {'PASS' if success else 'FAIL'}")
+    
+    def test_message_integrity(self):
+        """Test message integrity and tampering detection"""
+        print("\n5. Testing Message Integrity...")
+        
+        original_message = "Important secure message"
+        encrypted = self.security_manager.encrypt_message(original_message)
+        
+        # Test normal decryption
+        decrypted = self.security_manager.decrypt_message(encrypted)
+        normal_success = decrypted == original_message
+        
+        # Test tampering detection by modifying encrypted data
+        tampered_encrypted = encrypted[:-5] + "XXXXX"  # Modify last 5 characters
+        tampered_result = self.security_manager.decrypt_message(tampered_encrypted)
+        tampering_detected = "[Decryption Error:" in tampered_result
+        
+        # Test with completely invalid data
+        invalid_result = self.security_manager.decrypt_message("invalid_base64_data!")
+        invalid_detected = "[Decryption Error:" in invalid_result
+        
+        success = normal_success and tampering_detected and invalid_detected
+        self.test_results["Message Integrity"] = success
+        
+        print(f"   ✓ Normal decryption: {normal_success}")
+        print(f"   ✓ Tampering detection: {tampering_detected}")
+        print(f"   ✓ Invalid data handling: {invalid_detected}")
+        print(f"   Result: {'PASS' if success else 'FAIL'}")
+    
+    def test_salt_validation(self):
+        """Test salt implementation and consistency"""
+        print("\n6. Testing Salt Implementation...")
+        
+        # Import here to avoid circular imports
+        from core import SecurityManager
+        
+        # Create two SecurityManager instances with same password
+        sm1 = SecurityManager(self.server_password)
+        sm2 = SecurityManager(self.server_password)
+        
+        # They should produce same auth hashes (same salt)
+        same_auth_hash = sm1.auth_hash == sm2.auth_hash
+        
+        # They should be able to decrypt each other's messages
+        test_msg = "Cross-instance test"
+        encrypted_by_sm1 = sm1.encrypt_message(test_msg)
+        decrypted_by_sm2 = sm2.decrypt_message(encrypted_by_sm1)
+        cross_decrypt = decrypted_by_sm2 == test_msg
+        
+        # Different passwords should produce different hashes
+        sm3 = SecurityManager("different_password")
+        different_auth_hash = sm1.auth_hash != sm3.auth_hash
+        
+        success = same_auth_hash and cross_decrypt and different_auth_hash
+        self.test_results["Salt Implementation"] = success
+        
+        print(f"   ✓ Consistent auth hashes: {same_auth_hash}")
+        print(f"   ✓ Cross-instance decryption: {cross_decrypt}")
+        print(f"   ✓ Different passwords produce different hashes: {different_auth_hash}")
+        print(f"   Result: {'PASS' if success else 'FAIL'}")
+    
+    def test_authentication_manager(self):
+        """Test comprehensive authentication manager functionality"""
+        print("\n7. Testing Authentication Manager...")
+        
+        # Test multiple client authentication
+        clients = []
+        for i in range(3):
+            client = type('MockSocket', (), {'id': i})()
+            clients.append(client)
+        
+        # Authenticate 2 clients correctly, 1 incorrectly
+        auth_results = [
+            self.auth_manager.authenticate_client(clients[0], self.server_password),
+            self.auth_manager.authenticate_client(clients[1], self.server_password),
+            self.auth_manager.authenticate_client(clients[2], "wrong_password")
+        ]
+        
+        # Check counts
+        expected_count = 2  # Only 2 should be authenticated
+        actual_count = self.auth_manager.get_authenticated_count()
+        
+        # Test bulk logout
+        self.auth_manager.logout_client(clients[0])
+        count_after_logout = self.auth_manager.get_authenticated_count()
+        
+        success = (auth_results[0] and auth_results[1] and not auth_results[2] and 
+                  actual_count == expected_count and count_after_logout == expected_count - 1)
+        
+        self.test_results["Authentication Manager"] = success
+        
+        print(f"   ✓ Multiple client auth: {auth_results[0] and auth_results[1]}")
+        print(f"   ✓ Wrong password rejection: {not auth_results[2]}")
+        print(f"   ✓ Correct count tracking: {actual_count == expected_count}")
+        print(f"   ✓ Logout count update: {count_after_logout == expected_count - 1}")
+        print(f"   Result: {'PASS' if success else 'FAIL'}")
+    
+    def print_results(self):
+        """Print comprehensive test results"""
+        print("\n" + "=" * 60)
+        print("ENHANCED SECURITY TEST RESULTS")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results.values() if result)
+        total = len(self.test_results)
+        
+        for test_name, result in self.test_results.items():
+            status = "✓ PASS" if result else "✗ FAIL"
+            print(f"{test_name:<30} {status}")
+        
+        print("-" * 60)
+        print(f"Total: {passed}/{total} tests passed")
+        print(f"Success Rate: {(passed/total)*100:.1f}%")
+        
+        if passed == total:
+            print("🎉 ALL SECURITY TESTS PASSED! System is secure for deployment.")
+        else:
+            print("⚠️  Some tests failed. Review security implementation.")
+        
+        print("=" * 60)
+
+
+def run_enhanced_security_tests():
+    """Run comprehensive security tests with authentication"""
+    test_suite = TestSecuritySuite()
+    test_suite.run_all_tests()
+
+
 if __name__ == "__main__":
-    test_security_components()
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "--enhanced":
+        # Run enhanced security tests with authentication
+        run_enhanced_security_tests()
+    else:
+        # Run basic security component tests
+        test_security_components()
+    run_enhanced_security_tests()

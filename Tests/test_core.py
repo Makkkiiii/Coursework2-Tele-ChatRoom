@@ -1,7 +1,7 @@
 """
-Advanced Chat Application with Encryption, File Sharing, and GUI
-Features: OOP Design, Data Structures, Encryption, File Transfer, Modern GUI
-Author: Programming & Algorithm 2 - Coursework
+Test Core Module with Password Authentication
+Features: OOP Design, Data Structures, Encryption, File Transfer, Authentication
+Author: Programming & Algorithm 2 - Coursework - Test Environment
 """
 
 import socket
@@ -114,7 +114,7 @@ class Message:
                  file_data: Optional[Dict] = None, timestamp: Optional[datetime] = None):
         self.sender = sender
         self.content = content
-        self.msg_type = msg_type  # "text", "file", "image", "system"
+        self.msg_type = msg_type  # "text", "file", "image", "system", "auth"
         self.file_data = file_data or {}
         self.timestamp = timestamp or datetime.now()
         self.message_id = self._generate_id()
@@ -175,10 +175,10 @@ class UserManager:
     """Manages connected users using dictionary data structure"""
     
     def __init__(self):
-        self._users = {}  # {username: {"socket": socket, "status": "online"}}
+        self._users = {}  # {username: {"socket": socket, "status": "online", "authenticated": bool}}
         self._lock = threading.Lock()
     
-    def add_user(self, username: str, user_socket: socket.socket) -> bool:
+    def add_user(self, username: str, user_socket: socket.socket, authenticated: bool = False) -> bool:
         """Add user to the system"""
         with self._lock:
             if username in self._users:
@@ -186,18 +186,36 @@ class UserManager:
             self._users[username] = {
                 "socket": user_socket,
                 "status": "online",
+                "authenticated": authenticated,
                 "joined_at": datetime.now()
             }
             return True
+    
+    def authenticate_user(self, username: str) -> bool:
+        """Mark user as authenticated"""
+        with self._lock:
+            if username in self._users:
+                self._users[username]["authenticated"] = True
+                return True
+            return False
+    
+    def is_user_authenticated(self, username: str) -> bool:
+        """Check if user is authenticated"""
+        with self._lock:
+            user_data = self._users.get(username)
+            return user_data["authenticated"] if user_data else False
     
     def remove_user(self, username: str):
         """Remove user from system"""
         with self._lock:
             self._users.pop(username, None)
     
-    def get_users(self, authenticated_only: bool = False) -> list:
-        """Get list of online users"""
+    def get_users(self, authenticated_only: bool = True) -> list:
+        """Get list of users (authenticated by default)"""
         with self._lock:
+            if authenticated_only:
+                return [username for username, data in self._users.items() 
+                       if data["authenticated"]]
             return list(self._users.keys())
     
     def get_user_socket(self, username: str) -> Optional[socket.socket]:
@@ -215,7 +233,7 @@ class UserManager:
 class FileManager:
     """Handles file operations and transfers"""
     
-    def __init__(self, base_dir: str = "shared_files"):
+    def __init__(self, base_dir: str = "test_shared_files"):
         self.base_dir = base_dir
         self.ensure_directory()
         self.max_file_size = 50 * 1024 * 1024  # 50MB limit
@@ -326,20 +344,39 @@ class ChatHistory:
 
 
 if __name__ == "__main__":
-    # Test the classes
-    print("Core classes loaded successfully!")
+    # Test the classes with authentication
+    print("Test Core classes with authentication loaded successfully!")
     
-    # Test SecurityManager
-    sm = SecurityManager()
+    # Test SecurityManager with authentication
+    server_password = "secure_chat_2025"
+    sm = SecurityManager(server_password)
+    
+    # Test encryption
     test_msg = "Hello, this is a test message!"
     encrypted = sm.encrypt_message(test_msg)
     decrypted = sm.decrypt_message(encrypted)
     print(f"Encryption test: {decrypted == test_msg}")
     
-    # Test Message
-    msg = Message("TestUser", "Test content")
-    msg_dict = msg.to_dict()
-    msg_restored = Message.from_dict(msg_dict)
-    print(f"Message serialization test: {msg.content == msg_restored.content}")
+    # Test authentication
+    correct_auth = sm.verify_password("secure_chat_2025")
+    wrong_auth = sm.verify_password("wrong_password")
+    print(f"Correct password test: {correct_auth}")
+    print(f"Wrong password test: {not wrong_auth}")
     
-    print("All tests passed!")
+    # Test AuthenticationManager
+    auth_manager = AuthenticationManager(sm)
+    print(f"Auth manager created: {auth_manager.get_authenticated_count() == 0}")
+    
+    # Test Message with auth type
+    auth_msg = Message("SYSTEM", "Authentication required", "auth")
+    msg_dict = auth_msg.to_dict()
+    msg_restored = Message.from_dict(msg_dict)
+    print(f"Auth message test: {msg_restored.msg_type == 'auth'}")
+    
+    # Test UserManager with authentication
+    user_mgr = UserManager()
+    user_mgr.add_user("TestUser", None, False) # type: ignore
+    user_mgr.authenticate_user("TestUser")
+    print(f"User authentication test: {user_mgr.is_user_authenticated('TestUser')}")
+    
+    print("All authentication tests passed!")

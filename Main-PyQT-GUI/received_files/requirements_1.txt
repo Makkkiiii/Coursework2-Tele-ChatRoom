@@ -1,0 +1,12 @@
+PyQt5
+pillow
+cryptography
+threading
+socket
+json
+base64
+hashlib
+datetime
+os
+typing
+

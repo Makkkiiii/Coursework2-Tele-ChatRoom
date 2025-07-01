@@ -1,21 +1,18 @@
 """
-PyQt Chat Server with Modern Interface and Advanced Security
-Features: Modern UI, Live monitoring, Advanced security, Message encryption
+Test Server with Password Authentication - Using Main GUI Design
+Features: Socket Programming, Threading, Authentication, Encryption, Original Main GUI Design
+Author: Programming & Algorithm 2 - Coursework - Test Environment
 """
 
-from __future__ import annotations
 import sys
 import socket
 import threading
 import json
 import time
-import io
-import os
 from datetime import datetime
 from typing import Optional
-from core import (SecurityManager, AuthenticationManager, UserManager, 
+from test_core import (SecurityManager, AuthenticationManager, UserManager, 
                       MessageQueue, ChatHistory, FileManager, Message)
-from security import AdvancedSecurityManager, SECURITY_CONFIG
 
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
@@ -24,7 +21,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QHeaderView, QProgressBar, QCheckBox,
     QSpinBox, QTextBrowser, QMessageBox, QInputDialog, QDialog
 )
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QEventLoop
 from PyQt5.QtGui import QFont, QColor, QPixmap, QIcon
 
 
@@ -67,13 +64,12 @@ class SecureChatServerWithAuth:
         self.server_password = server_password
         self.security_manager = SecurityManager(server_password) # type: ignore
         self.auth_manager = AuthenticationManager(self.security_manager)
-        self.advanced_security = AdvancedSecurityManager(SECURITY_CONFIG)
         
         # Core components
         self.user_manager = UserManager()
         self.chat_history = ChatHistory()
         self.message_queue = MessageQueue()
-        self.file_manager = FileManager("received_files")
+        self.file_manager = FileManager("test_received_files")
         
         # Server stats
         self.start_time = None
@@ -143,29 +139,12 @@ class SecureChatServerWithAuth:
         authenticated = False
         client_ip = address[0]
         
-        # Log connection attempt
-        if self.gui:
-            self.gui.add_security_event(f"🔗 New connection attempt from {client_ip}:{address[1]}", "INFO")
-        
-        # Track client IP
-        self.client_ips[client_socket] = client_ip
-        
-        # Connection rate limiting
-        if not self.advanced_security.rate_limiter.is_allowed(client_ip, "connection"):
-            if self.gui:
-                self.gui.add_security_event(f"🚫 Connection rate limit exceeded from {client_ip}", "WARNING")
-            try:
-                client_socket.close()
-            except:
-                pass
-            return
-        
         try:
             # Send authentication challenge
             auth_challenge = {
                 "type": "auth_challenge",
                 "message": "Password required for chat access",
-                "server_name": "TeleChat Server"
+                "server_name": "Test Chat Server"
             }
             self._send_message_to_client(client_socket, auth_challenge)
             
@@ -190,93 +169,55 @@ class SecureChatServerWithAuth:
                         password = message.get("password", "")
                         proposed_username = message.get("username", f"User_{address[1]}")
                         
-                        # Rate limiting check for authentication attempts
-                        if not self.advanced_security.rate_limiter.is_allowed(client_ip, "auth"):
-                            auth_response = {
-                                "type": "auth_rejected",
-                                "message": "🚫 Too many authentication attempts. Please try again later."
-                            }
-                            self._send_message_to_client(client_socket, auth_response)
-                            if self.gui:
-                                self.gui.add_security_event(f"🚫 Auth rate limit exceeded from {client_ip}", "WARNING")
-                                self.gui.add_auth_event(f"🚫 Auth rate limit exceeded from {client_ip}")
-                            break
-                        
-                        # Username validation
-                        is_valid_username, username_msg = self.advanced_security.input_validator.validate_username(proposed_username)
-                        if not is_valid_username:
-                            auth_response = {
-                                "type": "auth_rejected", 
-                                "message": f"❌ Invalid username: {username_msg}"
-                            }
-                            self._send_message_to_client(client_socket, auth_response)
-                            if self.gui:
-                                self.gui.add_security_event(f"❌ Invalid username '{proposed_username}' from {client_ip}: {username_msg}", "WARNING")
-                                self.gui.add_auth_event(f"❌ Invalid username '{proposed_username}' from {client_ip}: {username_msg}")
-                            break
-                        
                         # Authenticate using our auth manager
                         if self.auth_manager.authenticate_client(client_socket, password):
-                            # Check if username is available
-                            if not self.user_manager.add_user(proposed_username, client_socket):
-                                # Username taken, suggest alternative
-                                counter = 1
-                                original_name = proposed_username
-                                while not self.user_manager.add_user(f"{original_name}_{counter}", client_socket):
-                                    counter += 1
-                                    if counter > 100:  # Prevent infinite loop
-                                        break
-                                username = f"{original_name}_{counter}" if counter <= 100 else f"User_{address[1]}_{counter}"
-                            else:
+                            if not self.user_manager.user_exists(proposed_username):
                                 username = proposed_username
-                            
-                            authenticated = True
-                            
-                            # Send success response
-                            auth_response = {
-                                "type": "auth_success",
-                                "message": f"🎉 Welcome to TeleChat, {username}!",
-                                "username": username,
-                                "users": self.user_manager.get_users()
-                            }
-                            self._send_message_to_client(client_socket, auth_response)
-                            
-                            # Log successful authentication
-                            if self.gui:
-                                self.gui.add_security_event(f"✅ {username} authenticated successfully from {client_ip}", "INFO")
-                                self.gui.add_auth_event(f"✅ {username} authenticated successfully from {client_ip}")
-                                self.gui.client_connected.emit(username, client_ip)
-                            
-                            # Broadcast join message
-                            join_message = Message(
-                                sender="SYSTEM",
-                                content=f"👋💚 {username} joined the chat",
-                                msg_type="system"
-                            )
-                            self.message_queue.put(join_message)
-                            self.chat_history.add_message(join_message)
-                            
-                        else:
-                            # Authentication failed
-                            remaining_attempts = max_attempts - auth_attempts
-                            if remaining_attempts > 0:
+                                authenticated = True
+                                
+                                # Add authenticated user
+                                self.user_manager.add_user(username, client_socket, True)
+                                
                                 auth_response = {
-                                    "type": "auth_failed",
-                                    "message": f"❌ Invalid password. {remaining_attempts} attempts remaining.",
-                                    "attempts_remaining": remaining_attempts
+                                    "type": "auth_success",
+                                    "message": f"Welcome to Test Chat Server, {username}!",
+                                    "username": username
                                 }
+                                self._send_message_to_client(client_socket, auth_response)
+                                
+                                # Log successful authentication
+                                if self.gui:
+                                    self.gui.add_security_event(f"✅ {username} authenticated successfully from {client_ip}", "INFO")
+                                    self.gui.client_connected.emit(username, client_ip)
+                                
+                                # Broadcast join message
+                                join_message = Message(
+                                    sender="SYSTEM",
+                                    content=f"🟢 {username} joined the chat",
+                                    msg_type="system"
+                                )
+                                self.message_queue.put(join_message)
+                                self.chat_history.add_message(join_message)
+                                
                             else:
-                                auth_response = {
-                                    "type": "auth_rejected",
-                                    "message": "🚫 Access denied. Maximum attempts exceeded."
+                                error_response = {
+                                    "type": "auth_error",
+                                    "message": f"Username '{proposed_username}' is already taken"
                                 }
+                                self._send_message_to_client(client_socket, error_response)
+                        else:
+                            remaining = max_attempts - auth_attempts
+                            error_msg = f"❌ Incorrect password. {remaining} attempts remaining." if remaining > 0 else "❌ Access denied."
                             
-                            self._send_message_to_client(client_socket, auth_response)
+                            error_response = {
+                                "type": "auth_error",
+                                "message": error_msg
+                            }
+                            self._send_message_to_client(client_socket, error_response)
                             
-                            # Log failed attempt
+                            # Log failed authentication
                             if self.gui:
-                                self.gui.add_security_event(f"❌ Authentication failed from {client_ip} - attempt {auth_attempts}/{max_attempts}", "WARNING")
-                                self.gui.add_auth_event(f"❌ Authentication failed from {client_ip} - attempt {auth_attempts}/{max_attempts}")
+                                self.gui.add_security_event(f"❌ Authentication failed for {proposed_username} from {client_ip} (attempt {auth_attempts})", "WARNING")
                 
                 except (json.JSONDecodeError, Exception):
                     break
@@ -291,7 +232,6 @@ class SecureChatServerWithAuth:
                 # Log rejected connection
                 if self.gui:
                     self.gui.add_security_event(f"🚫 Connection rejected from {client_ip} - authentication failed", "WARNING")
-                    self.gui.add_auth_event(f"🚫 Connection rejected from {client_ip} - authentication failed")
                 return
             
             # Handle authenticated messages
@@ -311,20 +251,6 @@ class SecureChatServerWithAuth:
                         break
                     
                     message_data = json.loads(data)
-                    
-                    # Only apply rate limiting to chat messages and files, not protocol messages
-                    msg_type = message_data.get("type", "")
-                    if msg_type in ["text", "file"]:  # Only rate limit actual content messages
-                        if not self.advanced_security.rate_limiter.is_allowed(client_ip, "message"):
-                            rate_limit_msg = {
-                                "type": "warning",
-                                "content": "⚠️ Sending messages too fast. Please slow down."
-                            }
-                            self._send_message_to_client(client_socket, rate_limit_msg)
-                            if self.gui:
-                                self.gui.add_security_event(f"🚫 Message rate limit exceeded from {username} ({client_ip})", "WARNING")
-                            continue
-                    
                     self._process_authenticated_message(username, message_data, client_socket)
                     
                 except (json.JSONDecodeError, Exception):
@@ -346,7 +272,7 @@ class SecureChatServerWithAuth:
                 if was_kicked:
                     leave_message = Message(
                         sender="SYSTEM",
-                        content=f"{username} was kicked from the server",
+                        content=f"👮 {username} was kicked from the chat",
                         msg_type="system"
                     )
                     # Remove from kicked users after processing
@@ -383,39 +309,13 @@ class SecureChatServerWithAuth:
                 self.gui.update_server_info()
     
     def _process_authenticated_message(self, username, message_data, client_socket):
-        """Process authenticated client messages with security validation"""
+        """Process authenticated client messages"""
         msg_type = message_data.get("type", "text")
         
         if msg_type == "text":
             content = message_data.get("content", "")
             if content.strip():
-                # Security validation for message content
-                is_valid, processed_content = self.advanced_security.input_validator.validate_message(content)
-                
-                if not is_valid:
-                    # Send warning to sender
-                    warning_msg = {
-                        "type": "warning",
-                        "content": f"⚠️ Message blocked: {processed_content}"
-                    }
-                    self._send_message_to_client(client_socket, warning_msg)
-                    
-                    # Log dangerous message attempt
-                    if self.gui:
-                        self.gui.add_security_event(f"🚨 Dangerous message blocked from {username}: {content[:30]}...", "WARNING")
-                    
-                    # Send warning to all clients
-                    warning_system_msg = Message(
-                        sender="SYSTEM",
-                        content=f"⚠️ Potentially dangerous message detected from {username}",
-                        msg_type="system"
-                    )
-                    self.message_queue.put(warning_system_msg)
-                    self.chat_history.add_message(warning_system_msg)
-                    return
-                
-                # Process valid message
-                message = Message(username, processed_content, "text")
+                message = Message(username, content, "text")
                 self.chat_history.add_message(message)
                 self.message_queue.put(message)
                 self.message_count += 1
@@ -428,38 +328,8 @@ class SecureChatServerWithAuth:
             try:
                 file_info = message_data.get("file_data", {})
                 filename = file_info.get("name", "unknown")
-                file_data = file_info.get("data", "")
-                file_size = len(file_data) if file_data else 0
                 
-                # Advanced security validation for file
-                is_safe, security_msg = self.advanced_security.secure_file_processing(
-                    filename, file_size, username, 
-                    file_data.encode() if isinstance(file_data, str) else file_data
-                )
-                
-                if not is_safe:
-                    # Block malicious file
-                    warning_msg = {
-                        "type": "warning",
-                        "content": f"🚫 File blocked: {security_msg}"
-                    }
-                    self._send_message_to_client(client_socket, warning_msg)
-                    
-                    # Log dangerous file attempt
-                    if self.gui:
-                        self.gui.add_security_event(f"🚨 Malicious file blocked from {username}: {filename} - {security_msg}", "CRITICAL")
-                    
-                    # Send warning to all clients
-                    warning_system_msg = Message(
-                        sender="SYSTEM",
-                        content=f"⚠️ Potentially dangerous file detected from {username}: {filename}",
-                        msg_type="system"
-                    )
-                    self.message_queue.put(warning_system_msg)
-                    self.chat_history.add_message(warning_system_msg)
-                    return
-                
-                # Save file if safe
+                # Save file
                 file_path = self.file_manager.decode_file(file_info)
                 
                 file_message = Message(username, f"Shared file: {filename}", "file", file_info)
@@ -468,7 +338,7 @@ class SecureChatServerWithAuth:
                 
                 # Log file transfer
                 if self.gui:
-                    self.gui.add_security_event(f"📎 File shared by {username}: {filename} (✅ Security validated)", "INFO")
+                    self.gui.add_security_event(f"📎 File shared by {username}: {filename}", "INFO")
                 
             except Exception as e:
                 error_msg = Message("SYSTEM", f"File transfer error: {str(e)}", "system")
@@ -525,7 +395,7 @@ class SecureChatServerWithAuth:
 
 
 class ModernServerGUI(QMainWindow):
-    """Modern PyQt Server GUI with monitoring and security features"""
+    """Modern PyQt Server GUI with Password Authentication"""
     
     # Signals for cross-thread communication
     client_connected = pyqtSignal(str, str)
@@ -660,22 +530,6 @@ class ModernServerGUI(QMainWindow):
         """)
         status_layout.addWidget(self.password_protection)
         
-        # Security level
-        self.security_level = QLabel("🛡️ Security Level: Maximum")
-        self.security_level.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                font-weight: bold;
-                color: #51cf66;
-                padding: 10px 15px;
-                background-color: #1a2e1a;
-                border-radius: 8px;
-                border-left: 4px solid #51cf66;
-                border: 1px solid #404040;
-            }
-        """)
-        status_layout.addWidget(self.security_level)
-        
         # Active connections
         self.active_connections = QLabel("👥 Active Connections: 0")
         self.active_connections.setStyleSheet("""
@@ -784,12 +638,12 @@ class ModernServerGUI(QMainWindow):
         layout = QVBoxLayout(users_widget)
         
         # Connected users
-        users_frame = QGroupBox("👥 Connected Users")
+        users_frame = QGroupBox("👥 Connected Users (Authenticated)")
         users_layout = QVBoxLayout(users_frame)
         
         self.users_table = QTableWidget()
         self.users_table.setColumnCount(4)
-        self.users_table.setHorizontalHeaderLabels(["Username", "IP Address", "Connected Since", "Status"])
+        self.users_table.setHorizontalHeaderLabels(["Username", "IP Address", "Connected Since", "Auth Status"])
         header = self.users_table.horizontalHeader()
         if header:
             header.setStretchLastSection(True)
@@ -905,10 +759,6 @@ class ModernServerGUI(QMainWindow):
         self.export_security_btn.clicked.connect(self.export_security_log)
         security_controls_layout.addWidget(self.export_security_btn)
         
-        self.security_report_btn = QPushButton("📋 Generate Security Report")
-        self.security_report_btn.clicked.connect(self.generate_security_report)
-        security_controls_layout.addWidget(self.security_report_btn)
-        
         security_controls_layout.addStretch()
         events_layout.addWidget(security_controls)
         
@@ -996,7 +846,7 @@ class ModernServerGUI(QMainWindow):
         main_layout.addWidget(controls_frame)
     
     def setup_styles(self):
-        """Setup enhanced modern dark theme with better aesthetics"""
+        """Setup enhanced modern dark theme - same as main GUI"""
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -1227,7 +1077,7 @@ class ModernServerGUI(QMainWindow):
             }
         """)
         
-        self.add_security_event("🚀 Server started successfully", "INFO")
+        self.add_security_event("🚀 Server started successfully with password protection", "INFO")
     
     def stop_server(self):
         """Stop the server"""
@@ -1261,6 +1111,7 @@ class ModernServerGUI(QMainWindow):
     def on_client_connected(self, username, ip):
         """Handle client connection"""
         self.add_security_event(f"👤 User {username} connected from {ip}", "INFO")
+        self.add_auth_event(f"✅ {username} - Authentication successful from {ip}")
         self.update_server_info()
     
     def on_client_disconnected(self, username):
@@ -1273,12 +1124,10 @@ class ModernServerGUI(QMainWindow):
         self.add_security_event(event, event_type, details)
     
     def on_message_display(self, message):
-        """Handle message display with updated formatting"""
+        """Handle message display"""
         if message.msg_type == "system":
-            # SYSTEM messages - no timestamp, clean formatting
             self.messages_display.append(f"SYSTEM: {message.content}")
         else:
-            # Client messages - 12-hour format with AM/PM
             timestamp = datetime.now().strftime("%I:%M %p")
             self.messages_display.append(f"[{timestamp}] {message.sender}: {message.content}")
     
@@ -1298,8 +1147,6 @@ class ModernServerGUI(QMainWindow):
             color = "#f39c12"
         elif event_type == "INFO":
             color = "#3498db"
-        elif event_type == "CRITICAL":
-            color = "#d63031"  # Dark red for critical threats
         else:
             color = "#495057"
         
@@ -1308,7 +1155,7 @@ class ModernServerGUI(QMainWindow):
             html += f'<br><span style="color: #6c757d; margin-left: 20px;">Details: {details}</span>'
         
         self.security_events.append(html)
-
+    
     def add_auth_event(self, event):
         """Add authentication event"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1381,24 +1228,24 @@ class ModernServerGUI(QMainWindow):
                 )
                 
                 if reply == QMessageBox.Yes:
-                    # Mark user as kicked before closing connection
-                    self.server.kicked_users.add(username)
-                    
-                    # Get user socket and send kick message
+                    # Get user socket and kick
                     user_socket = self.server.user_manager.get_user_socket(username)
                     if user_socket:
                         try:
-                            # Send kick notification to user
+                            # Mark user as kicked
+                            self.server.kicked_users.add(username)
+                            
+                            # Send kick notification
                             kick_msg = {
                                 "type": "kicked",
                                 "content": f"🚫 You have been kicked from the server by the administrator."
                             }
                             self.server._send_message_to_client(user_socket, kick_msg)
                             
-                            # Close the connection (this will trigger the disconnect handler)
+                            # Close connection
                             user_socket.close()
                             
-                            # Log the kick action
+                            # Log the kick
                             self.add_security_event(f"👮 User {username} kicked by administrator", "WARNING")
                             
                             QMessageBox.information(self, "Success", f"User '{username}' has been kicked successfully.")
@@ -1408,65 +1255,25 @@ class ModernServerGUI(QMainWindow):
                             self.add_security_event(f"❌ Failed to kick {username}: {str(e)}", "ERROR")
                     else:
                         QMessageBox.warning(self, "Error", f"User '{username}' not found or already disconnected.")
-            else:
-                QMessageBox.warning(self, "Warning", "No user selected or invalid selection")
     
     def clear_messages(self):
         """Clear the messages display"""
         self.messages_display.clear()
-    
-    def clear_security_events(self):
-        """Clear the security events log"""
-        self.security_events.clear()
+        self.add_security_event("📝 Message history cleared", "INFO")
     
     def export_messages(self):
         """Export messages to file"""
-        # Implementation for exporting messages
-        QMessageBox.information(self, "Info", "Export messages functionality would be implemented here")
+        QMessageBox.information(self, "Export", "Message export functionality would be implemented here")
+    
+    def clear_security_events(self):
+        """Clear security events"""
+        self.security_events.clear()
+        self.auth_events.clear()
+        self.add_security_event("🗑️ Security logs cleared", "INFO")
     
     def export_security_log(self):
-        """Export security log to file"""
-        # Implementation for exporting security log
-        QMessageBox.information(self, "Info", "Export security log functionality would be implemented here")
-    
-    def generate_security_report(self):
-        """Generate a comprehensive security report"""
-        if hasattr(self.server, 'security_manager'):
-            # Generate basic security report
-            report = {
-                "status": "Active",
-                "authentication": "Password Protected",
-                "encryption": "AES-256 (Fernet)",
-                "users": len(self.server.user_manager.get_users()),
-                "authenticated_sessions": self.server.auth_manager.get_authenticated_count(),
-                "messages": self.server.message_count
-            }
-            
-            # Create report dialog
-            dialog = QMessageBox(self)
-            dialog.setWindowTitle("🔒 Security Report")
-            dialog.setIcon(QMessageBox.Information)
-            
-            # Format report for display
-            report_text = f"""Security Report Generated: {report.get('timestamp', 'Unknown')}
-System Status: {report.get('system_status', 'Unknown')}
-Active Sessions: {report.get('active_sessions', 0)}
-Total Connections: {report.get('metrics', {}).get('total_connections', 0)}
-Security Violations: {report.get('metrics', {}).get('security_violations', 0)}
-Messages Encrypted: {report.get('metrics', {}).get('messages_encrypted', 0)}
-            """
-            
-            dialog.setText("🔒 Security Report Generated")
-            dialog.setDetailedText(report_text)
-            dialog.exec_()
-        else:
-            QMessageBox.warning(self, "Warning", "Security manager not available")
-    
-    def closeEvent(self, event):
-        """Handle window closing"""
-        if self.running:
-            self.stop_server()
-        event.accept()
+        """Export security log"""
+        QMessageBox.information(self, "Export", "Security log export functionality would be implemented here")
 
 
 class ModernPasswordDialog(QDialog):
@@ -1680,9 +1487,9 @@ class ModernPasswordDialog(QDialog):
 
 
 def main():
-    """Main function to run the server application"""
-    # Comprehensive Qt warning suppression
+    """Main function"""
     import os
+    # Suppress Qt warnings
     import sys
     os.environ['QT_LOGGING_RULES'] = '*=false'
     os.environ['QT_DEBUG_CONSOLE'] = '0'
@@ -1699,16 +1506,20 @@ def main():
     sys.stderr = old_stderr
     
     # Set application properties
-    app.setApplicationName("TeleChat Server")
+    app.setApplicationName("TeleChat Server - Test with Auth")
     app.setApplicationVersion("2.0")
-    app.setOrganizationName("Secure Chat Solutions")
+    app.setOrganizationName("Secure Chat Solutions - Test Environment")
     
-    # Create and show the main window
-    window = ModernServerGUI()
-    window.show()
-    
-    # Run the application
-    sys.exit(app.exec_())
+    try:
+        # Create and show the main window
+        window = ModernServerGUI()
+        window.show()
+        
+        # Run the application
+        sys.exit(app.exec_())
+    except Exception as e:
+        print(f"Error starting application: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
