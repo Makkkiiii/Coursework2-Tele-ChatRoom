@@ -1,9 +1,0 @@
-2025-06-28 08:19:56 - INFO - {"event_type": "USER_LOGIN", "user": "testuser", "details": "IP: 192.168.1.100, Session: 0Ni2bWeo...", "timestamp": "2025-06-28T08:19:56.573455", "severity": "INFO"}
-2025-06-28 09:01:46 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 7 sections", "timestamp": "2025-06-28T09:01:46.320519", "severity": "INFO"}
-2025-06-28 09:02:05 - INFO - {"event_type": "SERVER_SHUTDOWN", "user": "Admin", "details": "Manual shutdown", "timestamp": "2025-06-28T09:02:05.529114", "severity": "INFO"}
-2025-06-28 09:56:58 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-28T09:56:58.599921", "severity": "INFO"}
-2025-06-28 09:56:58 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-28T09:56:58.609871", "severity": "INFO"}
-2025-06-28 09:58:17 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-28T09:58:17.787141", "severity": "INFO"}
-2025-06-28 09:58:17 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-28T09:58:17.787141", "severity": "INFO"}
-2025-06-28 09:58:17 - INFO - {"event_type": "SECURITY_REPORT_GENERATED", "user": "system", "details": "Report contains 10 sections", "timestamp": "2025-06-28T09:58:17.789106", "severity": "INFO"}
-2025-06-28 10:03:20 - INFO - {"event_type": "SECURITY_MANAGER_INITIALIZED", "user": "system", "details": "Security manager started with all components", "timestamp": "2025-06-28T10:03:20.482374", "severity": "INFO"}

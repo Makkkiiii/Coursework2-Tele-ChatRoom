@@ -12,12 +12,13 @@ A modern, secure chat application built with PyQt5, featuring end-to-end encrypt
 - **Session Management**: Secure session handling with timeout
 - **Rate Limiting**: DoS attack prevention
 - **Input Validation**: XSS and injection attack prevention
+- **Malicious File Detection**: Real-time deep content analysis and threat blocking
 - **Security Audit Logging**: Comprehensive security event tracking
 
 ### 💬 Chat Features
 
 - **Real-time Messaging**: Instant message delivery
-- **File Sharing**: Secure file transfer with validation
+- **Secure File Sharing**: File transfer with real-time malware detection and threat blocking
 - **User Management**: Online user tracking
 - **Message History**: Chat history with search capabilities
 - **System Messages**: Connection and security notifications
@@ -127,7 +128,39 @@ python PyQt_Client.py
 - **Authentication Monitoring**: Login success/failure tracking
 - **Message Validation**: Content security checking
 - **File Security**: Upload validation and scanning
-- **Session Tracking**: Secure session management
+
+### 🛡️ Malicious File Detection
+
+The server performs comprehensive real-time analysis of all uploaded files:
+
+**Detection Capabilities:**
+
+- **Executable Analysis**: Detects PE headers (Windows) and ELF binaries (Linux)
+- **Script Detection**: Identifies dangerous PHP, JavaScript, PowerShell, and VBScript code
+- **Content Scanning**: Deep analysis of file content for malicious patterns
+- **Double Extension Protection**: Prevents `document.pdf.exe` style attacks
+- **Size Validation**: Blocks oversized files and potential zip bombs
+- **Obfuscation Detection**: Identifies encoded, compressed, or hidden threats
+
+**Real-time Response:**
+
+- **Immediate Blocking**: Malicious files are rejected before reaching clients
+- **Alert System**: Critical threats trigger instant server alerts
+- **Detailed Logging**: Comprehensive threat analysis and event logging
+- **User Feedback**: Clear error messages explaining why files were blocked
+
+**Testing:**
+
+```bash
+# Test server malware detection
+cd Tests
+python test_server_malware_detection.py
+
+# Generate advanced test cases
+python malicious_file_tester.py
+```
+
+See `Tests/SERVER_MALWARE_DETECTION_GUIDE.md` for detailed testing procedures.
 
 ## File Sharing
 

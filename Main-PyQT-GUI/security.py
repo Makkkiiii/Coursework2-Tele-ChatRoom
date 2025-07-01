@@ -567,18 +567,19 @@ class AdvancedSecurityManager:
         
         return True, processed_message
     
-    def secure_file_processing(self, filename: str, file_size: int, sender: str) -> Tuple[bool, str]:
-        """Process file upload with security validation"""
+    def secure_file_processing(self, filename: str, file_size: int, sender: str, 
+                              file_data: Optional[bytes] = None) -> Tuple[bool, str]:
+        """Process file upload with comprehensive security validation"""
         
-        # Validate filename
+        # 1. Validate filename
         is_valid, message = self.input_validator.validate_filename(filename)
         if not is_valid:
             self.audit_logger.log_security_event(
-                "DANGEROUS_FILE", sender, f"File: {filename}", "WARNING"
+                "DANGEROUS_FILE", sender, f"File: {filename} - {message}", "WARNING"
             )
             return False, message
         
-        # Check file size
+        # 2. Check file size
         max_size = self.config.get("max_file_size", 50 * 1024 * 1024)  # 50MB
         if file_size > max_size:
             self.audit_logger.log_security_event(
@@ -586,7 +587,25 @@ class AdvancedSecurityManager:
             )
             return False, f"File too large. Maximum size: {max_size} bytes"
         
-        # Log file processing
+        # 3. Perform malicious file detection
+        malware_check = self._detect_malicious_file(filename, file_size, file_data)
+        if not malware_check['safe']:
+            threat_details = ', '.join(malware_check['threats'])
+            self.audit_logger.log_security_event(
+                "MALWARE_DETECTED", sender, 
+                f"File: {filename} - Threats: {threat_details}", "CRITICAL"
+            )
+            return False, f"Malicious file detected: {threat_details}"
+        
+        # 4. Log warnings if any
+        if malware_check['warnings']:
+            warning_details = ', '.join(malware_check['warnings'])
+            self.audit_logger.log_security_event(
+                "FILE_WARNING", sender, 
+                f"File: {filename} - Warnings: {warning_details}", "WARNING"
+            )
+        
+        # 5. Log successful file processing
         self.audit_logger.log_security_event(
             "FILE_PROCESSED", sender, f"File: {filename}, Size: {file_size}", "INFO"
         )
@@ -595,6 +614,183 @@ class AdvancedSecurityManager:
         self.metrics["file_uploads"] += 1
         
         return True, "File validation successful"
+    
+    def _detect_malicious_file(self, filename: str, file_size: int, 
+                              file_data: Optional[bytes] = None) -> Dict:
+        """Comprehensive malicious file detection"""
+        results = {
+            'safe': True,
+            'threats': [],
+            'warnings': [],
+            'scan_details': {}
+        }
+        
+        # Define dangerous file extensions
+        dangerous_extensions = {
+            '.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.vbe',
+            '.js', '.jse', '.jar', '.ps1', '.ps2', '.reg', '.msi', '.dll',
+            '.app', '.deb', '.rpm', '.run', '.bin'
+        }
+        
+        # Define suspicious patterns in file content
+        malicious_patterns = [
+            (b'MZ\x90\x00', 'PE Executable Header'),
+            (b'!<arch>', 'Archive/Library File'),
+            (b'<?php', 'PHP Script'),
+            (b'<script', 'JavaScript Code'),
+            (b'powershell', 'PowerShell Command'),
+            (b'cmd /c', 'Command Execution'),
+            (b'eval(', 'Code Evaluation'),
+            (b'exec(', 'Code Execution'),
+            (b'system(', 'System Command'),
+            (b'shell_exec', 'Shell Execution'),
+            (b'passthru', 'Command Passthrough'),
+            (b'base64_decode', 'Base64 Decoding'),
+            (b'gzinflate', 'Compression/Obfuscation'),
+            (b'str_rot13', 'String Rotation/Obfuscation'),
+            (b'CreateObject', 'Object Creation (VBScript/JS)'),
+            (b'WScript.Shell', 'Windows Script Shell'),
+            (b'XMLHttpRequest', 'HTTP Request (JS)'),
+            (b'ActiveXObject', 'ActiveX Object'),
+            (b'document.cookie', 'Cookie Stealing'),
+            (b'window.location', 'Redirection Attack'),
+            (b'javascript:', 'JavaScript Protocol'),
+            (b'data:', 'Data URL Scheme'),
+            (b'vbscript:', 'VBScript Protocol')
+        ]
+        
+        # 1. Extension Check
+        file_ext = os.path.splitext(filename)[1].lower()
+        if file_ext in dangerous_extensions:
+            results['threats'].append(f"Dangerous file extension: {file_ext}")
+            results['safe'] = False
+        
+        # 2. Double Extension Check
+        if filename.count('.') > 1:
+            parts = filename.lower().split('.')
+            for i, part in enumerate(parts[:-1]):
+                if f".{parts[i+1]}" in dangerous_extensions:
+                    results['threats'].append("Double extension attack detected")
+                    results['safe'] = False
+                    break
+        
+        # 3. Filename Analysis
+        filename_lower = filename.lower()
+        
+        # Check for suspicious filename patterns
+        suspicious_names = [
+            'autorun', 'setup', 'install', 'update', 'patch', 'crack',
+            'keygen', 'serial', 'activator', 'loader', 'trojan', 'virus',
+            'malware', 'backdoor', 'rootkit', 'keylogger', 'ransomware'
+        ]
+        
+        for suspicious in suspicious_names:
+            if suspicious in filename_lower:
+                results['warnings'].append(f"Suspicious filename pattern: {suspicious}")
+        
+        # Check filename length
+        if len(filename) > 255:
+            results['threats'].append("Filename too long (possible buffer overflow)")
+            results['safe'] = False
+        
+        # Check for null bytes in filename
+        if '\x00' in filename:
+            results['threats'].append("Null byte in filename")
+            results['safe'] = False
+        
+        # Check for control characters
+        if any(ord(c) < 32 for c in filename if c not in ['\t', '\n', '\r']):
+            results['warnings'].append("Control characters in filename")
+        
+        # 4. File Size Analysis
+        if file_size == 0:
+            results['warnings'].append("Zero-byte file")
+        elif file_size > 100 * 1024 * 1024:  # > 100MB
+            results['warnings'].append("Very large file size")
+        
+        # 5. Content Analysis (if file data is provided)
+        if file_data:
+            results['scan_details']['content_scanned'] = True
+            
+            # Check file signature/magic numbers
+            if len(file_data) >= 4:
+                header = file_data[:10]
+                
+                # PE Executable check
+                if header.startswith(b'MZ'):
+                    results['threats'].append("Windows executable detected")
+                    results['safe'] = False
+                
+                # ELF Executable check
+                elif header.startswith(b'\x7fELF'):
+                    results['threats'].append("Linux executable detected")
+                    results['safe'] = False
+                
+                # Java class file
+                elif header.startswith(b'\xca\xfe\xba\xbe'):
+                    results['warnings'].append("Java class file detected")
+                
+                # PDF with JavaScript
+                elif b'PDF' in header and b'/JS' in file_data[:1024]:
+                    results['warnings'].append("PDF with JavaScript detected")
+            
+            # Scan for malicious patterns in content
+            content_lower = file_data.lower()
+            for pattern, description in malicious_patterns:
+                if pattern in content_lower:
+                    if any(word in description.lower() for word in ['execution', 'command', 'shell', 'script']):
+                        results['threats'].append(f"Malicious pattern: {description}")
+                        results['safe'] = False
+                    else:
+                        results['warnings'].append(f"Suspicious pattern: {description}")
+            
+            # Check for obfuscation indicators
+            obfuscation_indicators = [
+                (lambda data: data.count(b'\\x') > 10, "Hex encoding detected"),
+                (lambda data: data.count(b'%') > 20, "URL encoding detected"),
+                (lambda data: len([c for c in data if c > 127]) > len(data) * 0.3, "High entropy content"),
+                (lambda data: b'base64' in data and len(data) > 1000, "Large base64 content")
+            ]
+            
+            for check_func, description in obfuscation_indicators:
+                try:
+                    if check_func(file_data):
+                        results['warnings'].append(description)
+                except:
+                    pass
+                    
+            # Archive bomb detection (simplified)
+            if filename_lower.endswith(('.zip', '.rar', '.7z', '.tar.gz')):
+                if file_size < 1024 and b'compressed' not in filename_lower.encode():
+                    results['warnings'].append("Potentially compressed bomb (very small archive)")
+        
+        else:
+            results['scan_details']['content_scanned'] = False
+            results['warnings'].append("File content not available for deep scanning")
+        
+        # 6. Advanced Heuristics
+        
+        # Polyglot file detection
+        if any(ext in filename_lower for ext in ['.html', '.htm']) and \
+           any(ext in filename_lower for ext in ['.js', '.php', '.asp']):
+            results['warnings'].append("Potential polyglot file")
+        
+        # Steganography detection (basic)
+        if filename_lower.endswith(('.jpg', '.png', '.gif', '.bmp')) and file_data:
+            if len(file_data) > 10 * 1024 * 1024:  # > 10MB image
+                results['warnings'].append("Large image file (possible steganography)")
+        
+        # Log scan results
+        scan_summary = {
+            'safe': results['safe'],
+            'threat_count': len(results['threats']),
+            'warning_count': len(results['warnings']),
+            'file_size': file_size,
+            'extension': file_ext
+        }
+        results['scan_details'].update(scan_summary)
+        
+        return results
     
     def get_security_report(self) -> Dict:
         """Generate comprehensive security report"""

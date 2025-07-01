@@ -44,7 +44,7 @@ class TeleChatLauncher(QWidget):
         layout.addWidget(title)
         
         # Subtitle
-        subtitle = QLabel("Modern Secure Messaging")
+        subtitle = QLabel("Modern Secure Messaging and File Sharing")
         subtitle.setAlignment(Qt.AlignCenter) # type: ignore
         subtitle.setStyleSheet("""
             QLabel {

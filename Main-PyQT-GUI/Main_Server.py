@@ -385,9 +385,25 @@ class SecureChatServer:
                 filename = file_data.get("name", "unknown")
                 file_size = file_data.get("size", 0)
                 
-                # Validate file security
+                # Extract file content for security analysis
+                file_content = None
+                if "data" in file_data:
+                    try:
+                        import base64
+                        file_content = base64.b64decode(file_data["data"])
+                    except Exception as e:
+                        if self.gui:
+                            self.gui.add_security_event(f"❌ {username}: Failed to decode file {filename} - {str(e)}", "ERROR")
+                        error_msg = {
+                            "type": "error",
+                            "content": f"🚫 File rejected: Invalid file encoding"
+                        }
+                        self._send_message_to_client(client_socket, error_msg)
+                        return
+                
+                # Validate file security with deep content analysis
                 is_valid, validation_message = self.security_manager.secure_file_processing(
-                    filename, file_size, username
+                    filename, file_size, username, file_content
                 )
                 
                 if not is_valid:
@@ -397,14 +413,26 @@ class SecureChatServer:
                     }
                     self._send_message_to_client(client_socket, error_msg)
                     
-                    # Log file rejection
+                    # Enhanced security logging with threat details
                     if self.gui:
-                        self.gui.add_security_event(f"🚫 {username}: File {filename} REJECTED - {validation_message}", "WARNING")
+                        threat_level = "CRITICAL" if "malicious" in validation_message.lower() else "WARNING"
+                        threat_icon = "🛡️🚨" if threat_level == "CRITICAL" else "🚫"
+                        self.gui.add_security_event(
+                            f"{threat_icon} THREAT DETECTED | {username}: File '{filename}' BLOCKED | {validation_message}", 
+                            threat_level
+                        )
+                        # Also add to server status for immediate visibility
+                        self.gui.add_server_status(f"⚠️ Malicious file blocked from {username}: {filename}")
                     return
                 
-                # Log successful file validation (server just relays the file)
+                # Log successful file validation with security confirmation
                 if self.gui:
-                    self.gui.add_security_event(f"📁 {username}: File {filename} ({file_size} bytes) validated and relayed", "INFO")
+                    file_size_mb = round(file_size / (1024 * 1024), 2) if file_size > 1024*1024 else file_size
+                    size_unit = "MB" if file_size > 1024*1024 else "bytes"
+                    self.gui.add_security_event(
+                        f"✅ SAFE FILE | {username}: '{filename}' ({file_size_mb} {size_unit}) validated and relayed", 
+                        "INFO"
+                    )
                 
                 # Create message for relaying (don't save file on server)
                 message = Message(
@@ -1219,6 +1247,8 @@ class ModernServerGUI(QMainWindow):
             color = "#f39c12"
         elif event_type == "INFO":
             color = "#3498db"
+        elif event_type == "CRITICAL":
+            color = "#d63031"  # Dark red for critical threats
         else:
             color = "#495057"
         
@@ -1227,6 +1257,15 @@ class ModernServerGUI(QMainWindow):
             html += f'<br><span style="color: #6c757d; margin-left: 20px;">Details: {details}</span>'
         
         self.security_events.append(html)
+    
+    def add_server_status(self, status_message):
+        """Add immediate status message to server display"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        # Add to messages display for immediate visibility
+        self.messages_display.append(f"[{timestamp}] 🛡️ SERVER SECURITY: {status_message}")
+        
+        # Also add as security event
+        self.add_security_event(status_message, "SECURITY")
     
     def update_message_display(self, message):
         """Update the message display"""
