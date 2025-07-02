@@ -713,7 +713,7 @@ python Main_Test.py
 
 ### File Sharing Limits
 
-- **Max File Size**: 10MB with server-side validation
+- **Max File Size**: 50MB with server-side validation
 - **Supported Types**: All file types with security scanning
 - **Storage Location**: `received_files/` (client-side only)
 - **Security Scanning**: Advanced malware detection and validation
@@ -959,7 +959,7 @@ python demo_usage.py         # Usage demo
 
 **Files Not Sharing**
 
-- Check file size (max 10MB)
+- Check file size (max 50MB)
 - Ensure file passes malware detection
 - Verify network connectivity
 - Check server security logs for rejection reasons
