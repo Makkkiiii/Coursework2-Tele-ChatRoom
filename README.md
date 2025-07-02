@@ -6,7 +6,7 @@
 
 ## 🌟 Professional-Grade Secure Chat Application
 
-**TeleChat** is an enterprise-level, TCP-based secure chat room application built with Python, featuring cutting-edge PyQt5 GUI, military-grade encryption, advanced cybersecurity features, intelligent file sharing, and real-time security monitoring. This application showcases advanced programming concepts including Object-Oriented Programming (OOP), Data Structures & Algorithms (DSA), and comprehensive cybersecurity implementation.
+**TeleChat** is an enterprise-level, TCP-based secure chat room application built with Python, featuring cutting-edge PyQt5 GUI, high-grade encryption, advanced cybersecurity features, intelligent file sharing, and real-time security monitoring. This application showcases advanced programming concepts including Object-Oriented Programming (OOP), Data Structures & Algorithms (DSA), and comprehensive cybersecurity implementation.
 
 <div align="center">
 
