@@ -513,7 +513,7 @@ flowchart LR
 |    📋 **Feature**     |      📊 **Specification**       | 🛡️ **Security Level** |
 | :-------------------: | :-----------------------------: | :-------------------: |
 |  **Supported Types**  |  PNG, JPG, GIF, PDF, TXT, ZIP   |  ✅ Type Validation   |
-|    **Size Limit**     |   10MB with server validation   |  🔍 Size Monitoring   |
+|    **Size Limit**     |   50MB with server validation   |  🔍 Size Monitoring   |
 | **Security Scanning** |   Advanced malware detection    |  🛡️ Threat Analysis   |
 |      **Storage**      | `received_files/` (client-only) | 🔒 No Server Storage  |
 |    **Encryption**     |   AES-256 during transmission   |   🔐 Military Grade   |
