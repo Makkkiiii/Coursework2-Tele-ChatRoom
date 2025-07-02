@@ -85,12 +85,12 @@ python Main_Client.py
 
 </div>
 
-## 🛡️ Enterprise Security Features
+## 🛡️ Security Features
 
 <details>
 <summary>🔐 <b>Advanced Authentication & Access Control</b></summary>
 
-- **� Password Authentication**: Military-grade server access with brute-force protection
+- **🔐 Password Authentication**: Military-grade server access with brute-force protection
 - **🛡️ Session Management**: Secure session handling with intelligent timeout protection
 - **🚫 Brute-force Protection**: Smart rate limiting on authentication attempts
 - **📊 Session Tracking**: Real-time monitoring of user sessions and activities
@@ -101,7 +101,7 @@ python Main_Client.py
 <summary>🛡️ <b>Real-time Threat Detection & Prevention</b></summary>
 
 - **🚨 XSS Detection**: Advanced real-time blocking of malicious script injections
-- **� Content Filtering**: Intelligent detection of dangerous content patterns
+- **🔐 Content Filtering**: Intelligent detection of dangerous content patterns
 - **⚡ Live Monitoring**: Instant threat detection with immediate response
 - **📋 Threat Intelligence**: Comprehensive analysis of security threats
 
@@ -113,7 +113,7 @@ python Main_Client.py
 - **🎯 Smart Filtering**: Multi-tier rate limiting (5 msg/min, 3 auth/min, 10 conn/min)
 - **🚫 DoS Prevention**: Advanced protection against denial of service attacks
 - **⚖️ Load Balancing**: Intelligent message throttling and queue management
-- **� Analytics**: Real-time monitoring of usage patterns and anomalies
+- **📋 Analytics**: Real-time monitoring of usage patterns and anomalies
 
 </details>
 
@@ -121,8 +121,8 @@ python Main_Client.py
 <summary>🔍 <b>Advanced File Security & Malware Detection</b></summary>
 
 - **🦠 Malware Scanning**: Advanced file content analysis and threat detection
-- **� Size Validation**: Intelligent file size limits with security considerations
-- **� Type Validation**: Comprehensive file type analysis and filtering
+- **🔐 Size Validation**: Intelligent file size limits with security considerations
+- **🔐 Type Validation**: Comprehensive file type analysis and filtering
 - **✅ Transfer Confirmation**: Explicit success/failure notifications with detailed feedback
 
 </details>
@@ -202,7 +202,7 @@ Advanced modular design with **inheritance**, **encapsulation**, and **polymorph
 - **🏭 Factory Pattern**: Dynamic message creation and processing
 - **🎯 Singleton Pattern**: Centralized security manager for system-wide protection
 
-### 🔐 Enterprise Security Stack
+### 🔐 Security Stack
 
 <div align="center">
 
@@ -259,8 +259,8 @@ socket threading json
 ### 📥 Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/your-repo/TeleChat-Enterprise.git
-cd TeleChat-Enterprise
+git clone https://github.com/Makkkiiii/Coursework2-Tele-ChatRoom.git
+cd Tele-ChatRoom
 ```
 
 ### 🔧 Step 2: Install Dependencies
