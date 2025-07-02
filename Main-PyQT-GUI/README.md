@@ -58,7 +58,7 @@ A modern, secure chat application built with PyQt5, featuring end-to-end encrypt
 ### Install Dependencies
 
 ```bash
-cd NewGUI
+cd Main-PyQT-GUI
 pip install -r requirements.txt
 ```
 
@@ -73,7 +73,7 @@ pip install -r requirements.txt
 ### Starting the Server
 
 ```bash
-python PyQt_Server.py
+python Main_Server.py
 ```
 
 1. Configure host and port (default: localhost:12345)
@@ -83,7 +83,7 @@ python PyQt_Server.py
 ### Starting the Client
 
 ```bash
-python PyQt_Client.py
+python Main_Client.py
 ```
 
 1. Enter server host and port
@@ -149,25 +149,13 @@ The server performs comprehensive real-time analysis of all uploaded files:
 - **Detailed Logging**: Comprehensive threat analysis and event logging
 - **User Feedback**: Clear error messages explaining why files were blocked
 
-**Testing:**
-
-```bash
-# Test server malware detection
-cd Tests
-python test_server_malware_detection.py
-
-# Generate advanced test cases
-python malicious_file_tester.py
-```
-
-See `Tests/SERVER_MALWARE_DETECTION_GUIDE.md` for detailed testing procedures.
 
 ## File Sharing
 
 ### Supported Features
 
 - **Secure Transfer**: All files encrypted during transmission
-- **Size Validation**: 10MB file size limit
+- **Size Validation**: 50MB file size limit
 - **Type Checking**: Dangerous file type prevention
 - **Auto-download**: Received files saved automatically
 - **Folder Access**: Quick access to downloads folder
@@ -201,7 +189,7 @@ See `Tests/SERVER_MALWARE_DETECTION_GUIDE.md` for detailed testing procedures.
 ### Client Architecture
 
 ```
-PyQt_Client.py
+Main_Client.py
 ├── ModernChatGUI (Main Window)
 ├── ModernChatWidget (Message Display)
 ├── ChatClient (Network Communication)
@@ -212,7 +200,7 @@ PyQt_Client.py
 ### Server Architecture
 
 ```
-PyQt_Server.py
+Main_Server.py
 ├── ModernServerGUI (Main Window)
 ├── SecureChatServer (Server Logic)
 ├── ServerThread (Background Server Operation)
@@ -291,30 +279,5 @@ PyQt_Server.py
 
 This project is part of Programming & Algorithm 2 coursework and is intended for educational purposes.
 
-## Credits
 
-- **PyQt5**: Cross-platform GUI toolkit
-- **Cryptography**: Modern cryptographic library
-- **Design Inspiration**: Telegram messenger interface
 
-## Interface Improvements
-
-### Version 2.0 Updates
-
-- **🎨 Modern Black Theme**: Complete redesign with professional dark aesthetic
-- **📱 WhatsApp/Telegram Style**: Message bubbles with proper left/right alignment
-- **📏 Better Sizing**: Increased window dimensions (1400x900 server, 1400x900 client)
-- **🔧 Layout Fixes**: All tabs and sections now fully visible and properly aligned
-- **🎯 Message Styling**: Entire message containers styled with blue (sender) and green (receiver)
-- **⚡ Responsive Design**: Improved scaling and minimum window sizes
-- **🔍 Better Visibility**: High contrast colors for improved readability
-- **🎪 Professional UI**: Clean, modern interface matching current design trends
-
-### Message Display Features
-
-- **Right-aligned blue messages**: Your sent messages appear on the right side
-- **Left-aligned green messages**: Received messages appear on the left side
-- **Centered system messages**: Server notifications displayed in the center
-- **Proper message bubbles**: Rounded containers with shadows and borders
-- **Timestamp display**: Clear time stamps for all messages
-- **Username highlighting**: Bold usernames for easy identification
