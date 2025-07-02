@@ -2,7 +2,12 @@
 
 # 🚀 TeleChat - Enterprise Security Chat 🔒
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&pause=1000&color=00D9FF&center=true&vCenter=true&width=800&lines=🛡️+Enterprise+Grade+Security;🔐+AES-256+Encryption;💻+Modern+PyQt5+Interface;🚫+Real-time+Threat+Detection;📊+Advanced+Rate+Limiting;🔍+Malware+Detection;⚡+Professional+Chat+Application" alt="Typing SVG" />
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/74038190/213760705-0d5bf320-4f43-4352-b74b-0889ae726bf7.gif" width="600">
+  
+  <h3>🔐 AES-256 Encryption • 💻 Modern PyQt5 Interface</h3>
+  <h3>🚫 Real-time Threat Detection • 📊 Advanced Rate Limiting • ⚡ Professional Chat Application</h3>
+</div>
 
 ---
 
@@ -15,7 +20,6 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white&labelColor=3776AB&color=FFD43B)](https://python.org)
 [![PyQt5](https://img.shields.io/badge/GUI-PyQt5-41CD52?style=for-the-badge&logo=qt&logoColor=white&labelColor=41CD52&color=white)](https://www.riverbankcomputing.com/software/pyqt/)
 [![Encryption](https://img.shields.io/badge/🔐_Encryption-AES256-FF6B6B?style=for-the-badge&logoColor=white&labelColor=FF6B6B&color=white)](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
-[![Security](https://img.shields.io/badge/🛡️_Security-Enterprise_Grade-4ECDC4?style=for-the-badge&logoColor=white&labelColor=4ECDC4&color=white)](#security-features)
 [![Auth](https://img.shields.io/badge/🔑_Auth-Password_Protected-9B59B6?style=for-the-badge&logoColor=white&labelColor=9B59B6&color=white)](#authentication)
 
 </div>
@@ -260,7 +264,7 @@ socket threading json
 ## 🛠️ Installation
 
 <div align="center">
-<img src="https://user-images.githubusercontent.com/74038190/212281775-b468df30-4edc-4bf8-a4ee-f52e1aaddc86.gif" width="400">
+<img src="https://user-images.githubusercontent.com/74038190/212257468-1e9a91f1-b626-4baa-b15d-5c385dfa7c39.gif" width="400">
 </div>
 
 ### 📥 Step 1: Clone Repository
@@ -271,6 +275,10 @@ cd TeleChat-Enterprise
 ```
 
 ### 🔧 Step 2: Install Dependencies
+
+<div align="center">
+<img src="https://user-images.githubusercontent.com/74038190/212257472-08e52665-c503-4bd9-aa20-f5a4dae769b5.gif" width="300">
+</div>
 
 ```bash
 pip install PyQt5 pillow cryptography
@@ -286,6 +294,8 @@ python comprehensive_security_test.py
 <div align="center">
 
 **✨ If you see green checkmarks, you're ready to go! ✨**
+
+<img src="https://user-images.githubusercontent.com/74038190/216644497-1951db19-8f3d-4e44-ac08-8e9d7e0d94a7.gif" width="200">
 
 </div>
 
