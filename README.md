@@ -1,8 +1,6 @@
 <div align="center">
 
-# 🚀 TeleChat - Enterprise Security Chat 🔒
-
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&pause=1000&color=00D9FF&center=true&vCenter=true&width=800&lines=🛡️+Enterprise+Grade+Security;🔐+AES-256+Encryption;💻+Modern+PyQt5+Interface;🚫+Real-time+Threat+Detection;📊+Advanced+Rate+Limiting;🔍+Malware+Detection;⚡+Professional+Chat+Application" alt="Typing SVG" />
+# 🚀 TeleChat 🔒
 
 ---
 
@@ -257,10 +255,6 @@ socket threading json
 ```
 
 ## 🛠️ Installation
-
-<div align="center">
-<img src="https://user-images.githubusercontent.com/74038190/212281775-b468df30-4edc-4bf8-a4ee-f52e1aaddc86.gif" width="400">
-</div>
 
 ### 📥 Step 1: Clone Repository
 
