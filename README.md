@@ -707,7 +707,7 @@ python Main_Test.py
 - **Key Derivation**: PBKDF2-HMAC-SHA256 with 100,000 iterations
 - **Rate Limiting**: Configurable limits for messages (5/min), auth (3/min), connections (10/min)
 - **XSS Detection**: Advanced regex patterns for dangerous content detection
-- **File Security**: Malware detection, size limits (10MB), type validation
+- **File Security**: Malware detection, size limits (50MB), type validation
 - **Session Management**: Secure session handling with timeout protection
 - **Audit Logging**: Comprehensive security event logging with timestamps
 
