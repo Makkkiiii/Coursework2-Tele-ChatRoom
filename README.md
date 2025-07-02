@@ -1068,4 +1068,20 @@ This program was written in Python using Visual Studio Code.
 
 # Screen Shots
 
+## Launcher
+
 ![Launcher.py](image.png)
+
+## Server
+
+### Password
+
+![alt text](image-1.png)
+
+### Server UI
+
+![alt text](image-2.png)
+
+## Client
+
+![alt text](image-3.png)
