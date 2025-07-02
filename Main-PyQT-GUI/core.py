@@ -1,5 +1,5 @@
 """
-Advanced Chat Application with Encryption, File Sharing, and GUI
+Advanced Chat Application with Encryption, File Sharing, Password Protection and GUI
 Features: OOP Design, Data Structures, Encryption, File Transfer, Modern GUI
 Author: Programming & Algorithm 2 - Coursework
 """

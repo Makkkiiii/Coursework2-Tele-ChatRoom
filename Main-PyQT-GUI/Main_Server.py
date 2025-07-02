@@ -1,5 +1,5 @@
 """
-PyQt Chat Server with Modern Interface and Advanced Security
+PyQt Chat Server with Modern Interface and Advanced Security and Password Protected
 Features: Modern UI, Live monitoring, Advanced security, Message encryption
 """
 
@@ -462,6 +462,14 @@ class SecureChatServerWithAuth:
                 # Save file if safe
                 file_path = self.file_manager.decode_file(file_info)
                 
+                # Send success confirmation to sender
+                success_msg = {
+                    "type": "file_success",
+                    "content": f"✅ File accepted: {filename}",
+                    "filename": filename
+                }
+                self._send_message_to_client(client_socket, success_msg)
+                
                 file_message = Message(username, f"Shared file: {filename}", "file", file_info)
                 self.chat_history.add_message(file_message)
                 self.message_queue.put(file_message)
@@ -578,7 +586,7 @@ class ModernServerGUI(QMainWindow):
     
     def setup_ui(self):
         """Setup the main UI - using original main GUI design"""
-        self.setWindowTitle("🔒 TeleChat Server - Advanced Security Monitoring (With Password Auth)")
+        self.setWindowTitle("🔒 TeleChat Server - Advanced Security Monitoring")
         self.setGeometry(50, 50, 1600, 1000)
         self.setMinimumSize(1400, 900)
         

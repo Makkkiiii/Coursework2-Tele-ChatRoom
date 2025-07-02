@@ -1,7 +1,7 @@
 """
-PyQt Chat Client with Password Authentication - Using Main GUI Design
+PyQt Chat Client with Password Authentication 
 Features: Modern UI, File transfer, Authentication, Message encryption, User management
-Author: Programming & Algorithm 2 - Coursework - Main Implementation
+Author: Programming & Algorithm 2 - Coursework 
 """
 
 import sys
@@ -99,6 +99,9 @@ class ChatClient:
         # Message deduplication
         self.processed_messages = set()
         
+        # File transfer tracking
+        self.pending_file_transfers = {}  # {filename: timestamp} to track pending files
+        
         # Message handlers
         self.message_handlers = {
             "auth_challenge": self._handle_auth_challenge, # type: ignore
@@ -110,6 +113,7 @@ class ChatClient:
             "message": self._handle_message,
             "error": self._handle_error,
             "warning": self._handle_warning,
+            "file_success": self._handle_file_success,
             "kicked": self._handle_kicked,
             "server_shutdown": self._handle_server_shutdown,
             "user_list_update": self._handle_user_list_update,
@@ -290,19 +294,24 @@ class ChatClient:
         try:
             # Encode file
             file_info = self.file_manager.encode_file(file_path)
+            filename = file_info['name']
             
             message_data = {
                 "type": "file",
-                "content": f"Sharing file: {file_info['name']}",
+                "content": f"Sharing file: {filename}",
                 "file_data": file_info
             }
             
             message_json = json.dumps(message_data)
             self.socket.send(message_json.encode('utf-8'))
             
+            # Track pending file transfer
+            import time
+            self.pending_file_transfers[filename] = time.time()
+            
             # Store for encryption verification
             if self.gui:
-                self.gui.last_plain_data = f"Shared file: {file_info['name']} ({file_info['size']} bytes)"
+                self.gui.last_plain_data = f"Shared file: {filename} ({file_info['size']} bytes)"
                 self.gui.last_encrypted_data = message_json  # In test environment, not actually encrypted
                 self.gui.last_message_type = "file"
             
@@ -427,12 +436,54 @@ class ChatClient:
         """Handle warning messages from server"""
         if self.gui:
             warning_content = data.get("content", "Unknown warning")
-            self.gui.add_system_message(f"⚠️ {warning_content}")
             
-            # Also show as popup for important warnings like XSS
-            if "dangerous" in warning_content.lower() or "blocked" in warning_content.lower():
-                QMessageBox.warning(self.gui, "Security Warning", warning_content)
+            # Handle file blocking warnings specially
+            if "file blocked" in warning_content.lower():
+                # Extract filename if possible and remove from pending transfers
+                import re
+                # Try to extract filename from warning message
+                for filename in list(self.pending_file_transfers.keys()):
+                    if filename.lower() in warning_content.lower():
+                        del self.pending_file_transfers[filename]
+                        break
+                
+                self.gui.add_system_message(f"🚨 SERVER REJECTED YOUR FILE: {warning_content}")
+                self.gui.add_system_message(f"❌ File transfer FAILED - Security validation failed")
+                self.gui.add_system_message(f"🚫 Your file was NOT shared with other users")
+                
+                # Show prominent popup for file blocking
+                QMessageBox.critical(self.gui, "File Blocked by Server", 
+                                   f"Your file was rejected by the server:\n\n{warning_content}\n\nThe file was not shared with other users.")
+                
+            elif "message blocked" in warning_content.lower():
+                self.gui.add_system_message(f"🚨 SERVER BLOCKED YOUR MESSAGE: {warning_content}")
+                
+                # Show popup for message blocking
+                QMessageBox.warning(self.gui, "Message Blocked by Server", 
+                                  f"Your message was blocked:\n\n{warning_content}")
+                
+            else:
+                # Generic warning handling
+                self.gui.add_system_message(f"⚠️ {warning_content}")
+                
+                # Show popup for other critical warnings
+                if "dangerous" in warning_content.lower() or "blocked" in warning_content.lower():
+                    QMessageBox.warning(self.gui, "Security Warning", warning_content)
         
+    def _handle_file_success(self, data):
+        """Handle successful file transfer confirmation from server"""
+        if self.gui:
+            filename = data.get("filename", "unknown file")
+            success_content = data.get("content", "File accepted")
+            
+            # Remove from pending transfers
+            if filename in self.pending_file_transfers:
+                del self.pending_file_transfers[filename]
+            
+            # Show success message
+            self.gui.add_system_message(f"✅ SERVER ACCEPTED YOUR FILE: {success_content}")
+            self.gui.add_system_message(f"🛡️ File successfully validated and shared with all users")
+    
 
 class ModernChatWidget(QWidget):
     """Modern chat message display widget"""
@@ -631,7 +682,7 @@ class ModernChatGUI(QMainWindow):
     
     def setup_ui(self):
         """Setup the main UI"""
-        self.setWindowTitle("🔒 TeleChat Client - Modern Secure Messaging (With Password Auth)")
+        self.setWindowTitle("🔒 TeleChat Client - Modern Secure Messaging")
         self.setGeometry(50, 50, 1500, 1000)
         self.setMinimumSize(1000, 700)
         
@@ -1441,11 +1492,14 @@ class ModernChatGUI(QMainWindow):
             file_size = os.path.getsize(file_path)
             file_name = os.path.basename(file_path)
             self.add_system_message(f"🔐 Encrypting file: {file_name} ({file_size} bytes)")
+            self.add_system_message(f"📤 Sending file to server for security validation...")
             
+            # Send file and wait for server response (don't assume success)
             if self.client.send_file(file_path):
-                self.add_system_message(f"🛡️ File encrypted and transmitted securely")
+                self.add_system_message(f"� File sent to server - awaiting security validation...")
+                # Note: Success/failure message will be shown when server responds
             else:
-                self.add_system_message(f"❌ Secure file transmission failed")
+                self.add_system_message(f"❌ Failed to send file to server")
     
     def open_downloads_folder(self):
         """Open the downloads folder"""
