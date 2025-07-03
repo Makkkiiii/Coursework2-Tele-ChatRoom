@@ -25,6 +25,17 @@
 
 <div align="center">
 
+## Overview
+
+Softwarica College of IT and E-Commerce
+
+"Coursework 2"
+
+Programming and Algorithm 2 (Python) - Lecturer: Suman Shrestha
+
+Telechat - 26th June (3rd Semester)
+
+
 ## ⚡ Quick Start - Verify Security Works
 
 <img src="https://user-images.githubusercontent.com/74038190/212284087-bbe7e430-757e-4901-90bf-4cd2ce3e1852.gif" width="100">
